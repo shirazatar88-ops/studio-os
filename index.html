@@ -147,6 +147,24 @@
   .delx{min-width:28px;min-height:28px}
   :focus-visible{outline:3px solid #1a5fb4;outline-offset:2px;border-radius:6px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  /* --- stage1 upgrade --- */
+  .filterbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-family:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 12px;cursor:pointer}
+  .chip b{font-weight:700;color:var(--muted);margin-right:3px}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .chip.on b{color:#fff}
+  .alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .alert{display:flex;align-items:center;gap:10px;border-radius:12px;padding:11px 14px;font-size:13.5px;font-weight:600;cursor:pointer;border:1px solid}
+  .alert .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+  .alert.bad{background:#fbeae6;border-color:#e9bdb4;color:#7c2d22}
+  .alert.bad .dot{background:var(--bad)}
+  .alert.warn{background:#fff4d6;border-color:#e6cf8f;color:#5c4708}
+  .alert.warn .dot{background:#c9961a}
+  .card.block{margin-bottom:14px}
+  .chk.urgent{border-right:3px solid var(--bad);padding-right:8px}
+  .pchip{font-size:11.5px;color:var(--accent);background:var(--soft);border-radius:20px;padding:2px 9px;cursor:pointer;white-space:nowrap}
+/*STAGE_CSS_END*/
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -157,7 +175,7 @@
   if(!window.supabase){ app.innerHTML='<div style="padding:40px;text-align:center">לא ניתן לטעון את המערכת. בדקי חיבור לאינטרנט ורענני.</div>'; return; }
   var sb=window.supabase.createClient(SB_URL,SB_KEY);
 
-  var S={role:null, view:"home", projects:[], activeId:null, email:"", showNew:false, chatDraft:{}, tab:"today", preview:false, contacts:[]};
+  var S={role:null, view:"home", projects:[], activeId:null, email:"", showNew:false, chatDraft:{}, tab:"today", preview:false, contacts:[], tf:{proj:"",type:"all"}};
   var chatTimer=null;
   var refreshTimer=null;
 
@@ -446,10 +464,11 @@
     }).join("") || '<div class="hint">אין שלבים עדיין.</div>';
   }
   function paymentsTable(P,editable){
-    var r='<table><tr><th>אבן דרך</th><th>סכום</th><th>סטטוס</th>'+(editable?'<th></th>':'')+'</tr>';
+    var r='<table><tr><th>אבן דרך</th><th>סכום</th>'+(editable?'<th>תאריך יעד</th>':'')+'<th>סטטוס</th>'+(editable?'<th></th>':'')+'</tr>';
     P.payments.forEach(function(p,i){
       r+='<tr><td>'+(editable?'<input class="ipt" data-payf="title" data-i="'+i+'" value="'+esc(p.title)+'">':esc(p.title))+'</td>'+
          '<td>'+(editable?'<input class="ipt" style="width:100px" type="number" data-payf="amount" data-i="'+i+'" value="'+(+p.amount||0)+'">':'<span class="money">'+money(p.amount)+'</span>')+'</td>'+
+         (editable?'<td><input class="ipt" style="width:150px" type="date" aria-label="תאריך יעד לתשלום" data-payf="due" data-i="'+i+'" value="'+esc(p.due||"")+'"></td>':'')+
          '<td><span class="tag '+(p.paid?'ok':'no')+(editable?'':' ro')+'"'+(editable?' data-pay="'+i+'"':'')+'>'+(p.paid?'שולם':'ממתין')+'</span></td>'+
          (editable?'<td><button class="delx" aria-label="מחיקה" data-delpay="'+i+'">×</button></td>':'')+'</tr>';
     });
@@ -463,14 +482,17 @@
     if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addPay">+ הוסף אבן דרך</button></div>';
     return r;
   }
+  function supVisible(s){ return s.show===true || (s.show!==false && s.status==="ok"); }
   function suppliersTable(P,editable){
-    var r='<table><tr><th>ספק</th><th>תחום</th><th>סטטוס</th>'+(editable?'<th>הערה (פנימי)</th><th></th>':'')+'</tr>';
+    var r='<table><tr><th>ספק</th><th>תחום</th><th>סטטוס</th>'+(editable?'<th>גלוי ללקוח</th><th>הערה (פנימי)</th><th></th>':'')+'</tr>';
     P.suppliers.forEach(function(s,i){
       var lbl={ok:"סגור",wait:"בתהליך",no:"לא סגור"}[s.status]||"לא סגור";
       if(editable){
+        var on=supVisible(s);
         r+='<tr><td><input class="ipt" data-sfield="nm" data-i="'+i+'" value="'+esc(s.nm)+'"></td>'+
            '<td><input class="ipt" data-sfield="trade" data-i="'+i+'" value="'+esc(s.trade)+'"></td>'+
            '<td><span class="tag '+esc(s.status)+'" data-sup="'+i+'">'+lbl+'</span></td>'+
+           '<td><button class="switch'+(on?' on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="גלוי ללקוח" data-sshow="'+i+'"><span class="knob" aria-hidden="true"></span>'+(on?'גלוי':'מוסתר')+'</button></td>'+
            '<td><input class="ipt" data-sfield="note" data-i="'+i+'" value="'+esc(s.note)+'"></td>'+
            '<td><button class="delx" aria-label="מחיקה" data-delsup="'+i+'">×</button></td></tr>';
       } else {
@@ -566,7 +588,7 @@
     s.total=s.commit+s.offer+s.est; return s;
   }
   function budgetTable(P){
-    var r='<table><tr><th>פריט / ספק</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th><th>סטטוס</th><th>ללקוח</th><th></th></tr>';
+    var r='<table><tr><th>פריט / ספק</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th><th>סטטוס</th><th>הצג ללקוח</th><th></th></tr>';
     P.budgetLines.forEach(function(l,i){
       var k=BL[l.status]?l.status:"est";
       r+='<tr><td><input class="ipt" data-bf="nm" data-i="'+i+'" value="'+esc(l.nm)+'"></td>'+
@@ -574,7 +596,7 @@
          '<td><input class="ipt" style="width:110px" type="number" data-bf="paid" data-i="'+i+'" value="'+(+l.paid||0)+'"></td>'+
          '<td class="money">'+money((+l.amount||0)-(+l.paid||0))+'</td>'+
          '<td><span class="tag '+BC[k]+'" data-bstat="'+i+'">'+BL[k]+'</span></td>'+
-         '<td><button class="switch'+(l.show?' on':'')+'" role="switch" aria-checked="'+(l.show?'true':'false')+'" aria-label="הצגת השורה ללקוח" data-bshow="'+i+'"><span class="knob" aria-hidden="true"></span>'+(l.show?'מוצג':'מוסתר')+'</button></td>'+
+         '<td style="text-align:center"><input type="checkbox" aria-label="הצג ללקוח" data-bshow="'+i+'"'+(l.show?' checked':'')+'></td>'+
          '<td><button class="delx" aria-label="מחיקה" data-delbl="'+i+'">×</button></td></tr>';
     });
     var s=budgetSums(P);
@@ -588,17 +610,29 @@
     return r;
   }
   var PL={hi:"גבוהה",mid:"רגילה",lo:"נמוכה"}, PC={hi:"no",mid:"wait",lo:"todo"};
+  var CATL={calls:"שיחות ותיאומים",plans:"תוכניות לביצוע",approvals:"אישורים ותקציב"}, CATC={calls:"wait",plans:"todo",approvals:"ok"};
+  var WAITL={"":"—",client:"ממתין ללקוח",supplier:"ממתין לספק"};
+  function taskCat(t){
+    if(CATL[t.cat]) return t.cat;
+    var x=t.t||"";
+    if(/תכני|תוכני|פריס|שרטוט|גרסה|דלת קו אפס/.test(x)) return "plans";
+    if(/אישור|לאשר|תקציב|תשלום|חשבונית|קבלה|חוזה|הסכם/.test(x)) return "approvals";
+    return "calls";
+  }
   function tasksTable(P){
-    var r='<table><tr><th style="width:34px"></th><th>משימה</th><th>עדיפות</th><th>תאריך יעד</th><th></th></tr>';
+    var r='<table><tr><th style="width:34px"></th><th>משימה</th><th>סוג עבודה</th><th>ממתין ל</th><th>עדיפות</th><th>תאריך יעד</th><th></th></tr>';
     P.tasks.forEach(function(t,i){
-      var k=PL[t.pri]?t.pri:"mid";
-      r+='<tr'+(t.done?' style="opacity:.5"':'')+'><td><input type="checkbox" data-tdone="'+i+'"'+(t.done?' checked':'')+'></td>'+
-         '<td><input class="ipt" data-tf="t" data-i="'+i+'" value="'+esc(t.t)+'"'+(t.done?' style="text-decoration:line-through"':'')+'></td>'+
+      var k=PL[t.pri]?t.pri:"mid", c=taskCat(t), w=WAITL[t.wait]?t.wait:"";
+      r+='<tr'+(t.done?' style="opacity:.5"':'')+'><td><input type="checkbox" aria-label="סימון כבוצע" data-tdone="'+i+'"'+(t.done?' checked':'')+'></td>'+
+         '<td><input class="ipt" style="min-width:220px'+(t.done?';text-decoration:line-through':'')+'" data-tf="t" data-i="'+i+'" value="'+esc(t.t)+'"></td>'+
+         '<td><span class="tag '+CATC[c]+'" data-tcat="'+i+'">'+CATL[c]+'</span></td>'+
+         '<td><span class="tag '+(w?'no':'todo')+'" data-twait="'+i+'">'+WAITL[w]+'</span></td>'+
          '<td><span class="tag '+PC[k]+'" data-tpri="'+i+'">'+PL[k]+'</span></td>'+
          '<td><input class="ipt" style="width:150px" type="date" data-tf="due" data-i="'+i+'" value="'+esc(t.due||"")+'"></td>'+
          '<td><button class="delx" aria-label="מחיקה" data-deltask="'+i+'">×</button></td></tr>';
     });
-    r+='</table><div class="addrow"><button class="btn ghost sm" id="addTask">+ הוסף משימה</button></div>';
+    r+='</table><div class="addrow"><button class="btn ghost sm" id="addTask">+ הוסף משימה</button></div>'+
+       '<div class="hint">"סוג עבודה" קובע באיזה בלוק המשימה תופיע ב"הבוקר שלי" (נקבע אוטומטית לפי הנוסח, ואפשר לשנות בלחיצה). "ממתין ל" משמש לסינון שם.</div>';
     return r;
   }
   function journalHtml(P){
@@ -634,10 +668,10 @@
        '<div><label class="klabel">קטגוריה</label><input class="ipt" id="pCat" value="'+esc(P.category)+'"></div></div></div>';
 
     h+='<div class="sectitle">משימות <span style="font-size:11px;color:var(--muted);font-weight:400">· '+openTasks+' פתוחות · פנימי</span></div><div class="card">'+tasksTable(P)+'</div>';
-    h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+budgetTable(P)+'<div class="hint">לחיצה על התגית: מחויב ← בהצעה ← הערכה. הסכומים כוללים מע״מ. הלקוח רואה רק שורות שהמתג "ללקוח" שלהן מופעל (שם, סכום, שולם ויתרה) — כברירת מחדל הכול מוסתר.</div></div>';
+    h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+budgetTable(P)+'<div class="hint">לחיצה על התגית: מחויב ← בהצעה ← הערכה. הסכומים כוללים מע״מ. הלקוח רואה רק שורות שסומנו ב״הצג ללקוח״ (שם, סכום, שולם ויתרה), תחת ״תשלומים לקבלן ולספקים״. כברירת מחדל הכול מוסתר.</div></div>';
     h+='<div class="sectitle">שלבי התקדמות</div><div class="card">'+stagesHtml(P,true)+'</div>';
     h+='<div class="sectitle">שכר הטרחה שלי <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+paymentsTable(P,true)+'</div>';
-    h+='<div class="sectitle">ספקים · סטטוס סגירה</div><div class="card">'+suppliersTable(P,true)+'<div class="hint">לחיצה על התגית: סגור ← בתהליך ← לא סגור. ההערות פנימיות ולא מוצגות ללקוח.</div></div>';
+    h+='<div class="sectitle">ספקים · סטטוס סגירה</div><div class="card">'+suppliersTable(P,true)+'<div class="hint">לחיצה על התגית: סגור ← בתהליך ← לא סגור. ספק מוצג ללקוח אוטומטית רק כשהוא "סגור"; המתג מאפשר להציג או להסתיר ספק בודד ידנית (שינוי סטטוס מחזיר אותו למצב האוטומטי). ההערות פנימיות תמיד.</div></div>';
     h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,true)+'<div class="hint">לחיצה על התגית: הושלם ← בתהליך ← לביצוע. קבצים שמועלים כאן (עד 50MB לקובץ) זמינים גם ללקוח של הפרויקט.</div></div>';
     h+='<div class="sectitle">יומן פגישות <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי</span></div><div class="card">'+journalHtml(P)+'</div>';
 
@@ -682,7 +716,9 @@
     document.querySelectorAll('[data-delpay]').forEach(function(el){ el.onclick=function(){ P.payments.splice(+el.dataset.delpay,1); re(); }; });
     document.querySelectorAll('[data-payf]').forEach(function(el){ el.onchange=function(){ P.payments[+el.dataset.i][el.dataset.payf]= el.dataset.payf==="amount"?(+el.value||0):el.value; re(); }; });
     var as=$("addSup"); if(as) as.onclick=function(){ P.suppliers.push({nm:"ספק חדש",trade:"",status:"no",note:""}); re(); };
-    document.querySelectorAll('[data-sup]').forEach(function(el){ el.onclick=function(){ var i=+el.dataset.sup; P.suppliers[i].status=({ok:"wait",wait:"no",no:"ok"})[P.suppliers[i].status]||"no"; re(); }; });
+    document.querySelectorAll('[data-sup]').forEach(function(el){ el.onclick=function(){ var i=+el.dataset.sup; P.suppliers[i].status=({ok:"wait",wait:"no",no:"ok"})[P.suppliers[i].status]||"no"; delete P.suppliers[i].show; re(); }; });
+    document.querySelectorAll('[data-sshow]').forEach(function(el){ el.onclick=function(){ var x=P.suppliers[+el.dataset.sshow];
+      if(supVisible(x)){ if(x.status==="ok") x.show=false; else delete x.show; } else { if(x.status==="ok") delete x.show; else x.show=true; } re(); }; });
     document.querySelectorAll('[data-delsup]').forEach(function(el){ el.onclick=function(){ P.suppliers.splice(+el.dataset.delsup,1); re(); }; });
     document.querySelectorAll('[data-sfield]').forEach(function(el){ el.onchange=function(){ P.suppliers[+el.dataset.i][el.dataset.sfield]=el.value; save(P); }; });
     var apl=$("addPlan"); if(apl) apl.onclick=function(){ P.plans.push({nm:"תכנית חדשה",status:"todo"}); re(); };
@@ -722,13 +758,15 @@
     var abl=$("addBL"); if(abl) abl.onclick=function(){ P.budgetLines.push({nm:"",amount:0,paid:0,status:"offer"}); re(); };
     document.querySelectorAll('[data-bf]').forEach(function(el){ el.onchange=function(){ var k=el.dataset.bf; P.budgetLines[+el.dataset.i][k]= k==="nm"?el.value:(+el.value||0); re(); }; });
     document.querySelectorAll('[data-bstat]').forEach(function(el){ el.onclick=function(){ var l=P.budgetLines[+el.dataset.bstat]; l.status=({commit:"offer",offer:"est",est:"commit"})[l.status]||"commit"; re(); }; });
-    document.querySelectorAll('[data-bshow]').forEach(function(el){ el.onclick=function(){ var l=P.budgetLines[+el.dataset.bshow]; l.show=!l.show; re(); }; });
+    document.querySelectorAll('[data-bshow]').forEach(function(el){ el.onchange=function(){ P.budgetLines[+el.dataset.bshow].show=el.checked; save(P); }; });
     document.querySelectorAll('[data-delbl]').forEach(function(el){ el.onclick=function(){ P.budgetLines.splice(+el.dataset.delbl,1); re(); }; });
     // tasks
     var at=$("addTask"); if(at) at.onclick=function(){ P.tasks.push({t:"",pri:"mid",due:"",done:false}); re(); };
     document.querySelectorAll('[data-tdone]').forEach(function(el){ el.onchange=function(){ P.tasks[+el.dataset.tdone].done=el.checked; re(); }; });
     document.querySelectorAll('[data-tf]').forEach(function(el){ el.onchange=function(){ P.tasks[+el.dataset.i][el.dataset.tf]=el.value; save(P); }; });
     document.querySelectorAll('[data-tpri]').forEach(function(el){ el.onclick=function(){ var t=P.tasks[+el.dataset.tpri]; t.pri=({hi:"mid",mid:"lo",lo:"hi"})[t.pri]||"mid"; re(); }; });
+    document.querySelectorAll('[data-tcat]').forEach(function(el){ el.onclick=function(){ var t=P.tasks[+el.dataset.tcat]; t.cat=({calls:"plans",plans:"approvals",approvals:"calls"})[taskCat(t)]; re(); }; });
+    document.querySelectorAll('[data-twait]').forEach(function(el){ el.onclick=function(){ var t=P.tasks[+el.dataset.twait]; t.wait=({"":"client",client:"supplier",supplier:""})[WAITL[t.wait]?t.wait:""]; re(); }; });
     document.querySelectorAll('[data-deltask]').forEach(function(el){ el.onclick=function(){ P.tasks.splice(+el.dataset.deltask,1); re(); }; });
     // journal
     $("jAdd").onclick=function(){ var tx=$("jText").value.trim(); if(!tx) return; P.journal.push({date:$("jDate").value||today(),text:tx}); re(); };
@@ -737,7 +775,7 @@
   }
 
   /* ===== client ===== */
-  var VIS=[["payments","תשלומי הפרויקט (רק שורות תקציב שסומנו \"ללקוח\")"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (סגורים / לא סגורים)"],["plans","תוכניות עבודה וקבצים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
+  var VIS=[["payments","תשלומים לקבלן ולספקים (רק שורות שסומנו \"הצג ללקוח\")"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (רק מי שסומן גלוי ללקוח)"],["plans","תוכניות עבודה וקבצים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
   function visHtml(P){
     var V=P.vis||{};
     return VIS.map(function(v){ var on=V[v[0]]!==false;
@@ -748,7 +786,7 @@
   function viewOf(P){
     var C=JSON.parse(JSON.stringify(P)), V=C.vis||{};
     C.tasks=[]; C.journal=[]; C.budgetLines=[];
-    C.suppliers=C.suppliers.map(function(x){ delete x.note; return x; });
+    C.suppliers=C.suppliers.filter(supVisible).map(function(x){ delete x.note; delete x.show; return x; });
     C.docs=C.docs.filter(function(d){ return !d.internal; });
     C.payments=[];
     C.clientBudget=(V.payments===false)?[]:P.budgetLines.filter(function(l){return l.show;}).map(function(l){return {nm:l.nm,amount:l.amount,paid:l.paid};});
@@ -769,28 +807,43 @@
       '<div id="cfList" style="margin-top:12px"><div class="hint" style="margin:0">טוען…</div></div>';
   }
   async function loadClientFiles(P){
-    var r=await sb.from("client_files").select("id,path,name,kind,amount,note,uploader_role,created_at").eq("project_id",P.id).order("created_at",{ascending:false}).limit(500);
+    var r=await sb.from("client_files").select("id,path,name,kind,amount,note,uploader_role,created_at,deleted_at,deleted_by").eq("project_id",P.id).order("created_at",{ascending:false}).limit(500);
     var el=$("cfList"); if(!el) return;
     if(r.error){ el.innerHTML='<div class="hint" style="margin:0">לא ניתן לטעון את המסמכים.</div>'; return; }
-    var rows=r.data||[];
-    if(!rows.length){ el.innerHTML='<div class="hint" style="margin:0">עדיין לא הועלו מסמכים. אפשר להעלות כאן כל קבלה, הצעת מחיר או מסמך שקשור לפרויקט.</div>'; return; }
-    var sumR=0, sumQ=0;
-    var h='<table><tr><th>מסמך</th><th>סוג</th><th>סכום</th><th>הערה</th><th>תאריך</th><th>הועלה ע״י</th><th></th></tr>';
-    rows.forEach(function(f){
-      var k=KIND[f.kind]?f.kind:"other"; if(k==="receipt") sumR+=(+f.amount||0); if(k==="quote") sumQ+=(+f.amount||0);
-      var canDel=S.role==="admin"||f.uploader_role==="client";
-      h+='<tr><td><a class="plink" data-file="'+esc(f.path)+'">'+esc(f.name)+'</a></td><td><span class="tag ro '+KC[k]+'">'+KIND[k]+'</span></td>'+
-         '<td class="money">'+(f.amount!=null?money(f.amount):'')+'</td><td>'+esc(f.note)+'</td><td>'+esc(fmtDate(f.created_at))+'</td>'+
-         '<td>'+(f.uploader_role==="admin"?"המעצבת":"הלקוח")+'</td>'+
-         '<td>'+(canDel?'<button class="delx" aria-label="מחיקת המסמך" data-delcf="'+esc(f.id)+'" data-path="'+esc(f.path)+'">×</button>':'')+'</td></tr>';
-    });
-    h+='</table>';
-    if(sumR||sumQ) h+='<div class="hint">סה״כ קבלות: <b>'+money(sumR)+'</b> · סה״כ הצעות מחיר: <b>'+money(sumQ)+'</b> (לפי הסכומים שהוזנו)</div>';
+    var all=r.data||[], isAdmin=S.role==="admin";
+    var rows=all.filter(function(f){return !f.deleted_at;}), gone=(isAdmin&&!S.preview)?all.filter(function(f){return f.deleted_at;}):[];
+    function table(list,archived){
+      var h='<table><tr><th>מסמך</th><th>סוג</th><th>סכום</th><th>הערה</th><th>תאריך</th><th>הועלה ע״י</th>'+(archived?'<th>נמחק</th>':'')+'<th></th></tr>';
+      list.forEach(function(f){
+        var k=KIND[f.kind]?f.kind:"other";
+        var canDel=isAdmin||f.uploader_role==="client";
+        h+='<tr'+(archived?' style="opacity:.75"':'')+'><td><a class="plink" data-file="'+esc(f.path)+'">'+esc(f.name)+'</a></td><td><span class="tag ro '+KC[k]+'">'+KIND[k]+'</span></td>'+
+           '<td class="money">'+(f.amount!=null?money(f.amount):'')+'</td><td>'+esc(f.note)+'</td><td>'+esc(fmtDate(f.created_at))+'</td>'+
+           '<td>'+(f.uploader_role==="admin"?"המעצבת":"הלקוח")+'</td>'+
+           (archived?'<td><span class="tag ro no">נמחק ע״י לקוח</span> '+esc(fmtDate(f.deleted_at))+'</td>':'')+
+           '<td>'+(canDel?'<button class="delx" aria-label="'+(archived?'מחיקה לצמיתות':'מחיקת המסמך')+'" data-delcf="'+esc(f.id)+'" data-path="'+esc(f.path)+'">×</button>':'')+'</td></tr>';
+      });
+      return h+'</table>';
+    }
+    var h='';
+    if(!rows.length) h+='<div class="hint" style="margin:0">עדיין לא הועלו מסמכים. אפשר להעלות כאן כל קבלה, הצעת מחיר או מסמך שקשור לפרויקט.</div>';
+    else {
+      var sumR=0,sumQ=0; rows.forEach(function(f){ if(f.kind==="receipt") sumR+=(+f.amount||0); if(f.kind==="quote") sumQ+=(+f.amount||0); });
+      h+=table(rows,false);
+      if(sumR||sumQ) h+='<div class="hint">סה״כ קבלות: <b>'+money(sumR)+'</b> · סה״כ הצעות מחיר: <b>'+money(sumQ)+'</b> (לפי הסכומים שהוזנו)</div>';
+    }
+    if(gone.length) h+='<div class="sectitle" style="font-size:13px;margin-top:18px">ארכיון מחיקות <span style="font-size:11px;color:var(--muted);font-weight:400">· '+gone.length+' מסמכים שהלקוח מחק · נשמרים אצלך לתיעוד</span></div>'+table(gone,true);
     el.innerHTML=h; wireFiles();
     document.querySelectorAll('[data-delcf]').forEach(function(b){ b.onclick=async function(){
-      if(!confirm("למחוק את המסמך?")) return;
-      await sb.storage.from("plans").remove([b.dataset.path]);
-      await sb.from("client_files").delete().eq("id",b.dataset.delcf); loadClientFiles(P); }; });
+      if(S.role==="client"){
+        if(!confirm("להסיר את המסמך מהרשימה?")) return;
+        await sb.rpc("client_file_remove",{fid:b.dataset.delcf});
+      } else {
+        if(!confirm("למחוק את המסמך לצמיתות? הקובץ יימחק גם מהאחסון ולא ניתן יהיה לשחזר.")) return;
+        await sb.storage.from("plans").remove([b.dataset.path]);
+        await sb.from("client_files").delete().eq("id",b.dataset.delcf);
+      }
+      loadClientFiles(P); }; });
   }
   function wireClientFiles(P){
     var btn=$("cfAdd"); if(!btn) return;
@@ -823,16 +876,16 @@
     h+='<div class="grid">';
     h+='<div class="card"><h3>התקדמות הפרויקט</h3><div class="kpi">'+overall(P)+'<small>%</small></div><div class="bar" style="margin-top:10px"><i style="width:'+overall(P)+'%"></i></div><div class="klabel">'+(next?'שלב נוכחי: '+esc(next.nm):'כל השלבים הושלמו')+'</div></div>';
     if(dl!=null) h+='<div class="card"><h3>ימי רכישות שנותרו</h3><div class="kpi">'+dl+' <small>ימים</small></div><div class="klabel">לסיום שלב הרכש</div></div>';
-    if(can("suppliers")&&P.suppliers.length) h+='<div class="card"><h3>אנשי מקצוע סגורים</h3><div class="kpi">'+closed+' <small>/ '+P.suppliers.length+'</small></div><div class="klabel">ספקים שכבר נסגרו</div></div>';
+    if(can("suppliers")&&P.suppliers.length) h+='<div class="card"><h3>אנשי מקצוע בפרויקט</h3><div class="kpi">'+P.suppliers.length+'</div><div class="klabel">ספקים ובעלי מקצוע שנסגרו</div></div>';
     h+='</div>';
     h+='<div class="sectitle">שלבי הפרויקט</div><div class="card">'+stagesHtml(P,false)+'</div>';
     if(can("payments")&&CB.length){
       var ta=0,tp=0, t='<table><tr><th>פריט</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th></tr>';
       CB.forEach(function(l){ var a=+l.amount||0,p=+l.paid||0; ta+=a; tp+=p; t+='<tr><td>'+esc(l.nm)+'</td><td class="money">'+money(a)+'</td><td class="money">'+money(p)+'</td><td class="money">'+money(a-p)+'</td></tr>'; });
       t+='<tr style="font-weight:800"><td>סה״כ</td><td class="money">'+money(ta)+'</td><td class="money">'+money(tp)+'</td><td class="money">'+money(ta-tp)+'</td></tr></table>';
-      h+='<div class="sectitle">תשלומי הפרויקט</div><div class="card">'+t+'</div>';
+      h+='<div class="sectitle">תשלומים לקבלן ולספקים</div><div class="card">'+t+'</div>';
     }
-    if(can("suppliers")&&P.suppliers.length) h+='<div class="sectitle">ספקים · סגורים ולא סגורים</div><div class="card">'+suppliersTable(P,false)+'</div>';
+    if(can("suppliers")&&P.suppliers.length) h+='<div class="sectitle">ספקים ובעלי מקצוע</div><div class="card">'+suppliersTable(P,false)+'</div>';
     if(can("plans")&&P.plans.length) h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,false)+'</div>';
     if(can("docs")&&P.docs.length) h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,false)+'</div>';
     if(can("uploads")) h+='<div class="sectitle">המסמכים שלי · קבלות והצעות מחיר</div><div class="card">'+clientFilesBox()+'</div>';
@@ -858,44 +911,74 @@
     try{
       var r=await sb.from("messages").select("project_id,sender_role,created_at").order("created_at",{ascending:false}).limit(300);
       var seen={}; (r.data||[]).forEach(function(x){ if(seen[x.project_id]) return; seen[x.project_id]=1; if(x.sender_role==="client") waiting[x.project_id]=1; });
-      var f=await sb.from("client_files").select("project_id,uploader_role,created_at").gte("created_at",new Date(Date.now()-7*864e5).toISOString()).limit(500);
-      (f.data||[]).forEach(function(x){ if(x.uploader_role==="client") newFiles[x.project_id]=(newFiles[x.project_id]||0)+1; });
+      var f=await sb.from("client_files").select("project_id,uploader_role,created_at,deleted_at").gte("created_at",new Date(Date.now()-7*864e5).toISOString()).limit(500);
+      (f.data||[]).forEach(function(x){ if(x.uploader_role==="client"&&!x.deleted_at) newFiles[x.project_id]=(newFiles[x.project_id]||0)+1; });
     }catch(e){}
-    body=$("tabBody"); if(S.tab!=="today"||S.view!=="home"||!body) return;
+    S._today={waiting:waiting,newFiles:newFiles};
+    drawToday();
+  }
+  function drawToday(){
+    var body=$("tabBody"); if(S.tab!=="today"||S.view!=="home"||!body) return;
+    var waiting=S._today.waiting, newFiles=S._today.newFiles, F=S.tf;
     var td=today(), wk=plusDays(7), key="studioTicks:"+td, ticks={};
     try{ ticks=JSON.parse(localStorage.getItem(key)||"{}"); }catch(e){}
-    var hr=new Date().getHours(), greet=hr<12?"בוקר טוב":(hr<18?"צהריים טובים":"ערב טוב");
-    var h='<div class="sectitle">'+greet+' · מה על הפרק היום ('+fmtDate(td)+')</div>', any=false;
+    var items=[], alerts=[];
     S.projects.forEach(function(P){
-      var it=[];
+      if(F.proj&&F.proj!==P.id) return;
+      function add(o){ o.pid=P.id; o.pname=P.name; items.push(o); }
       P.tasks.forEach(function(t,i){ if(t.done||!t.t) return;
-        if(t.due&&t.due<=wk) it.push({task:i,txt:t.t,tag:t.due<td?"באיחור":(t.due===td?"היום":fmtDate(t.due)),bad:t.due<=td});
-        else if(!t.due&&t.pri==="hi") it.push({task:i,txt:t.t,tag:"עדיפות גבוהה"}); });
-      if(waiting[P.id]) it.push({id:"msg",txt:"לענות להודעת הלקוח",tag:"ממתין",bad:true});
-      if(newFiles[P.id]) it.push({id:"cf",txt:"לעבור על "+newFiles[P.id]+" מסמכים שהלקוח העלה השבוע"});
-      var open=P.suppliers.filter(function(x){return x.status!=="ok";}).map(function(x){return x.nm;});
-      if(open.length) it.push({id:"sup",txt:"ספקים פתוחים: "+open.slice(0,4).join(", ")+(open.length>4?" ועוד "+(open.length-4):"")});
-      var pl=P.plans.filter(function(x){return x.status!=="done";}).length;
-      if(pl) it.push({id:"pl",txt:pl+" תוכניות עבודה שלא הושלמו"});
+        var late=t.due&&t.due<td, isToday=t.due===td, soon=t.due&&t.due<=wk;
+        if(!(soon||t.pri==="hi"||t.wait)) return;
+        add({block:taskCat(t),task:i,txt:t.t,tag:late?"באיחור":(isToday?"היום":(t.due?fmtDate(t.due):"")),urgent:late||isToday,wait:WAITL[t.wait]?t.wait:""}); });
+      if(waiting[P.id]){ add({block:"calls",id:"msg",txt:"לענות להודעת הלקוח בצ׳אט",tag:"הלקוח מחכה",urgent:true}); alerts.push({cls:"bad",pid:P.id,txt:"הודעת לקוח ממתינה לתשובה · "+P.name}); }
+      P.suppliers.forEach(function(x,i){ if(x.status==="wait") add({block:"calls",id:"sw"+i,txt:"לקדם סגירה מול "+x.nm+(x.note?" — "+x.note:""),tag:"בתהליך",wait:"supplier"}); });
+      var notClosed=P.suppliers.filter(function(x){return x.status==="no";}).map(function(x){return x.nm;});
+      if(notClosed.length) add({block:"calls",id:"sn",txt:"ספקים שטרם נסגרו: "+notClosed.slice(0,5).join(", ")+(notClosed.length>5?" ועוד "+(notClosed.length-5):"")});
+      P.plans.forEach(function(x,i){ if(x.status!=="done") add({block:"plans",id:"pl"+i,txt:x.nm,tag:x.status==="prog"?"בתהליך":"לביצוע"}); });
+      if(newFiles[P.id]) add({block:"approvals",id:"cf",txt:"לעבור על "+newFiles[P.id]+" מסמכים שהלקוח העלה השבוע"});
       var np=P.payments.filter(function(x){return !x.paid;})[0];
-      if(np) it.push({id:"pay",txt:"תשלום הבא מהלקוח: "+np.title+" · "+money(np.amount)});
+      if(np){ var pd=np.due?daysLeft(np.due):null, near=pd!=null&&pd<=7;
+        add({block:"approvals",id:"pay",txt:"שכר טרחה — "+np.title+" · "+money(np.amount),tag:pd==null?"":(pd<0?"באיחור":(pd===0?"היום":"בעוד "+pd+" ימים")),urgent:pd!=null&&pd<=0,wait:"client"});
+        if(near) alerts.push({cls:pd<=0?"bad":"warn",pid:P.id,txt:(pd<0?"תשלום באיחור":(pd===0?"תשלום היום":"תשלום בעוד "+pd+" ימים"))+" · "+np.title+" ("+money(np.amount)+") · "+P.name}); }
+      var offers=P.budgetLines.filter(function(l){return l.status==="offer"&&(+l.amount||0)>0;}).length;
+      if(offers) add({block:"approvals",id:"of",txt:offers+" הצעות מחיר בתקציב ממתינות להחלטה",wait:"client"});
       var dl=daysLeft(P.shoppingDeadline);
-      if(dl!=null&&dl<=14) it.push({id:"shop",txt:dl<0?"יעד הרכישות עבר":("נותרו "+dl+" ימים ליעד הרכישות"),bad:dl<3});
-      if(!it.length) return; any=true;
-      h+='<div class="card" style="margin-bottom:12px"><h3><a class="plink" data-open="'+esc(P.id)+'">'+esc(P.name)+'</a><span class="role-pill">'+overall(P)+'%</span></h3>';
-      it.forEach(function(x){
-        var tk=x.task!=null, idk=P.id+":"+(tk?("t"+x.task):x.id), on=!tk&&ticks[idk];
-        h+='<label class="chk'+(on?' done':'')+'"><input type="checkbox" '+(tk?'data-ttask="'+esc(P.id)+':'+x.task+'"':'data-tick="'+esc(idk)+'"')+(on?' checked':'')+'><span>'+esc(x.txt)+'</span>'+
-           (x.tag?'<span class="tag ro '+(x.bad?'no':'todo')+'">'+esc(x.tag)+'</span>':'')+'</label>';
+      if(dl!=null&&dl<=14){ add({block:"approvals",id:"shop",txt:dl<0?"יעד הרכישות עבר":("נותרו "+dl+" ימים ליעד הרכישות"),urgent:dl<=3,tag:dl<0?"עבר":""});
+        alerts.push({cls:dl<=3?"bad":"warn",pid:P.id,txt:(dl<0?"יעד הרכישות עבר":"יעד הרכישות בעוד "+dl+" ימים")+" · "+P.name}); }
+    });
+    var shown=items.filter(function(x){ return F.type==="all"||(F.type==="urgent"&&x.urgent)||(F.type==="client"&&x.wait==="client")||(F.type==="supplier"&&x.wait==="supplier"); });
+    var hr=new Date().getHours(), greet=hr<12?"בוקר טוב":(hr<18?"צהריים טובים":"ערב טוב");
+    var h='<div class="sectitle">'+greet+' · '+fmtDate(td)+'</div>';
+    // filter bar
+    var TY=[["all","הכול"],["urgent","דחוף להיום"],["client","ממתין ללקוח"],["supplier","ממתין לספק"]];
+    h+='<div class="filterbar"><label class="klabel" for="tfProj" style="margin:0">פרויקט</label><select class="ipt" id="tfProj" style="width:auto;min-width:170px"><option value="">כל הפרויקטים</option>'+
+       S.projects.map(function(p){return '<option value="'+esc(p.id)+'"'+(F.proj===p.id?' selected':'')+'>'+esc(p.name)+'</option>';}).join("")+'</select>'+
+       '<div class="chips" role="group" aria-label="סינון לפי סוג">'+TY.map(function(t){ var n=t[0]==="all"?items.length:items.filter(function(x){return (t[0]==="urgent"&&x.urgent)||x.wait===t[0];}).length;
+         return '<button class="chip'+(F.type===t[0]?' on':'')+'" aria-pressed="'+(F.type===t[0]?'true':'false')+'" data-tft="'+t[0]+'">'+t[1]+' <b>'+n+'</b></button>'; }).join("")+'</div></div>';
+    // critical alerts
+    if(alerts.length) h+='<div class="alerts" role="status">'+alerts.map(function(a){ return '<a class="alert '+a.cls+'" data-open="'+esc(a.pid)+'"><span class="dot" aria-hidden="true"></span>'+esc(a.txt)+'</a>'; }).join("")+'</div>';
+    // blocks
+    [["calls","1 · שיחות ותיאומים"],["plans","2 · תוכניות לביצוע"],["approvals","3 · אישורים ותקציב"]].forEach(function(b){
+      var list=shown.filter(function(x){return x.block===b[0];});
+      list.sort(function(a,c){ return (c.urgent?1:0)-(a.urgent?1:0); });
+      h+='<div class="card block"><h3>'+b[1]+'<span class="role-pill">'+list.length+'</span></h3>';
+      if(!list.length) h+='<div class="hint" style="margin:0">אין פריטים בבלוק הזה לפי הסינון הנוכחי.</div>';
+      list.forEach(function(x){
+        var tk=x.task!=null, idk=x.pid+":"+(tk?("t"+x.task):x.id), on=!tk&&ticks[idk];
+        h+='<label class="chk'+(on?' done':'')+(x.urgent?' urgent':'')+'"><input type="checkbox" '+(tk?'data-ttask="'+esc(x.pid)+':'+x.task+'"':'data-tick="'+esc(idk)+'"')+(on?' checked':'')+'><span>'+esc(x.txt)+'</span>'+
+           (x.wait?'<span class="tag ro todo">'+WAITL[x.wait]+'</span>':'')+
+           (x.tag?'<span class="tag ro '+(x.urgent?'no':'wait')+'">'+esc(x.tag)+'</span>':'')+
+           (F.proj?'':'<a class="pchip" data-open="'+esc(x.pid)+'">'+esc(x.pname)+'</a>')+'</label>';
       });
       h+='</div>';
     });
-    if(!any) h+='<div class="card"><div class="hint" style="margin:0">אין כרגע משימות פתוחות או דברים שמחכים לך. </div></div>';
     h+='<div class="hint">סימון משימה כאן מסמן אותה כבוצעה בפרויקט. שאר הסימונים הם תזכורת יומית שנשמרת במכשיר הזה ומתאפסת מחר.</div>';
     body.innerHTML=h;
-    document.querySelectorAll('#tabBody [data-open]').forEach(function(el){ el.onclick=function(){ S.activeId=el.dataset.open; S.view="project"; S.preview=false; renderApp(); window.scrollTo(0,0); }; });
+    $("tfProj").onchange=function(e){ F.proj=e.target.value; drawToday(); };
+    document.querySelectorAll('[data-tft]').forEach(function(el){ el.onclick=function(){ F.type=el.dataset.tft; drawToday(); }; });
+    document.querySelectorAll('#tabBody [data-open]').forEach(function(el){ el.onclick=function(ev){ ev.preventDefault(); S.activeId=el.dataset.open; S.view="project"; S.preview=false; renderApp(); window.scrollTo(0,0); }; });
     document.querySelectorAll('[data-tick]').forEach(function(el){ el.onchange=function(){ ticks[el.dataset.tick]=el.checked; try{ localStorage.setItem(key,JSON.stringify(ticks)); }catch(e){} el.parentNode.classList.toggle("done",el.checked); }; });
-    document.querySelectorAll('[data-ttask]').forEach(function(el){ el.onchange=function(){ var a=el.dataset.ttask.split(":"), P=byId(a[0]); if(!P) return; P.tasks[+a[1]].done=true; save(P); renderToday(); }; });
+    document.querySelectorAll('[data-ttask]').forEach(function(el){ el.onchange=function(){ var a=el.dataset.ttask.split(":"), P=byId(a[0]); if(!P) return; P.tasks[+a[1]].done=true; save(P); drawToday(); }; });
   }
   function safeUrl(u){ u=(u||"").trim(); if(!u) return ""; if(!/^https?:\/\//i.test(u)) u="https://"+u; return u; }
   async function renderContacts(){
