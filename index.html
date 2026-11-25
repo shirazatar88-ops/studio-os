@@ -164,6 +164,35 @@
   .card.block{margin-bottom:14px}
   .chk.urgent{border-right:3px solid var(--bad);padding-right:8px}
   .pchip{font-size:11.5px;color:var(--accent);background:var(--soft);border-radius:20px;padding:2px 9px;cursor:pointer;white-space:nowrap}
+  /* --- stage2: calmer, roomier UI --- */
+  #app{background:#f7f5f1}
+  .wrap{max-width:1120px;padding:28px 22px 90px}
+  .topbar{border-bottom-color:#ebe6dd}
+  .topin{max-width:1120px;padding:14px 22px}
+  .proj{font-size:17px;letter-spacing:.1px}
+  .card{border-radius:16px;padding:22px;border-color:#ebe6dd;box-shadow:0 1px 2px rgba(60,50,40,.04)}
+  .card h3{font-size:14.5px;margin-bottom:14px}
+  .grid{gap:16px;margin-bottom:6px}
+  .kpi{font-weight:700;font-size:28px}
+  .sectitle{border-right:none;padding-right:0;margin:40px 0 14px;font-size:13px;letter-spacing:.7px;color:var(--muted);font-weight:700;scroll-margin-top:130px}
+  th{border-bottom:1px solid #ebe6dd;padding:10px 8px}
+  td{border-bottom-color:#f1ede6;padding:11px 8px}
+  .ipt{border-color:#e9e3d9;background:#fcfbf9;border-radius:8px;padding:6px 8px}
+  .ipt:focus{outline:none;border-color:var(--accent);background:#fff}
+  .btn{border-radius:10px}
+  .tabs{gap:2px;padding-bottom:0;margin-bottom:24px;border-bottom:1px solid #e6e0d6}
+  .tab{border:none;background:none;border-radius:0;padding:11px 16px;border-bottom:2px solid transparent;color:var(--muted);margin-bottom:-1px}
+  .tab:hover{color:var(--ink)}
+  .tab.on{background:none;color:var(--ink);border-bottom-color:var(--accent)}
+  .secnav{position:sticky;z-index:20;background:rgba(247,245,241,.95);backdrop-filter:blur(6px);display:flex;gap:4px;overflow-x:auto;padding:10px 0;margin:-14px 0 18px;border-bottom:1px solid #e6e0d6;scrollbar-width:thin}
+  .secnav button{font-family:inherit;font-size:12.5px;white-space:nowrap;border:none;background:none;color:var(--muted);padding:6px 11px;border-radius:16px;cursor:pointer}
+  .secnav button:hover{background:var(--soft);color:var(--ink)}
+  .tag.okb{background:#dcefe2;color:#1f5a35;font-size:12.5px;padding:4px 12px}
+  tr.approved td{background:#f5faf6}
+  .jmeet{margin-top:6px}
+  .jmeet b{display:block;font-size:11.5px;color:var(--muted);font-weight:700;margin-bottom:1px}
+  .pcard{border-color:#ebe6dd;border-radius:16px;padding:20px}
+  @media(max-width:620px){ .wrap{padding:18px 12px 60px} .card{padding:15px} .sectitle{margin:28px 0 10px} .tab{padding:9px 11px;font-size:13px} }
 /*STAGE_CSS_END*/
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -201,14 +230,14 @@
       clientEmail:r.client_email||"", designer:r.designer||"שירז עטר · אדריכלות ועיצוב פנים",
       shoppingDeadline:r.shopping_deadline||"",
       stages:d.stages||[], payments:d.payments||[], suppliers:d.suppliers||[], plans:d.plans||[],
-      budgetLines:lines, tasks:d.tasks||[], journal:d.journal||[], docs:d.docs||[], vis:d.vis||{}, clientBudget:d.clientBudget||[] };
+      budgetLines:lines, tasks:d.tasks||[], journal:d.journal||[], docs:d.docs||[], vis:d.vis||{}, clientBudget:d.clientBudget||[], ffe:d.ffe||[] };
   }
   function toRow(P){
     return { name:P.name||"פרויקט", client_name:P.client||"", category:P.category||"כללי",
       client_email:(P.clientEmail&&P.clientEmail.trim())?P.clientEmail.trim().toLowerCase():null,
       shopping_deadline:P.shoppingDeadline||null,
       data:{stages:P.stages,payments:P.payments,suppliers:P.suppliers,plans:P.plans,
-            budgetLines:P.budgetLines,tasks:P.tasks,journal:P.journal,docs:P.docs,vis:P.vis||{}} };
+            budgetLines:P.budgetLines,tasks:P.tasks,journal:P.journal,docs:P.docs,vis:P.vis||{},ffe:P.ffe||[]} };
   }
   function today(){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
   function fmtDate(s){ if(!s) return ""; var p=String(s).slice(0,10).split("-"); return p.length===3? p[2]+"/"+p[1]+"/"+p[0] : s; }
@@ -445,7 +474,7 @@
           var name=$("npName").value.trim(); if(!name){ $("npErr").textContent="חסר שם פרויקט"; return; }
           $("npSave").disabled=true;
           var row={ name:name, client_name:$("npClient").value.trim(), category:$("npCat").value.trim()||"כללי",
-            data:{stages:defaultStages(),payments:[],suppliers:[],plans:[],budgetLines:[],tasks:[],journal:[],docs:[],vis:{}} };
+            data:{stages:defaultStages(),payments:[],suppliers:[],plans:[],budgetLines:[],tasks:[],journal:[],docs:[],vis:{},ffe:[]} };
           var r=await sb.from("projects").insert(row).select().single();
           if(r.error){ $("npSave").disabled=false; $("npErr").textContent="לא נשמר — נסי שוב"; return; }
           S.projects.push(fromRow(r.data)); S.activeId=r.data.id; S.showNew=false; S.view="project"; renderApp();
@@ -512,16 +541,22 @@
     return h||'<span class="hint" style="margin:0">—</span>';
   }
   function plansTable(P,editable){
-    var r='<table><tr><th>תכנית</th><th>סטטוס</th><th>קבצים</th>'+(editable?'<th></th>':'')+'</tr>';
+    var r='<table class="wide"><tr><th>תכנית</th><th>גרסה</th><th>עודכן</th><th>סטטוס</th><th>מאושר לביצוע</th><th>קבצים</th>'+(editable?'<th></th>':'')+'</tr>';
     P.plans.forEach(function(p,i){
-      var lbl={done:"הושלם",prog:"בתהליך",todo:"לביצוע"}[p.status]||"לביצוע";
+      var lbl={done:"הושלם",prog:"בתהליך",todo:"לביצוע"}[p.status]||"לביצוע", ver=+p.ver||1;
       if(editable){
-        r+='<tr><td><input class="ipt" data-pfield="nm" data-i="'+i+'" value="'+esc(p.nm)+'"></td>'+
+        r+='<tr'+(p.approved?' class="approved"':'')+'><td><input class="ipt" style="min-width:170px" data-pfield="nm" data-i="'+i+'" value="'+esc(p.nm)+'"></td>'+
+           '<td style="white-space:nowrap">V <input class="ipt" style="width:58px;display:inline-block" type="number" min="1" aria-label="מספר גרסה" data-pver="'+i+'" value="'+ver+'"></td>'+
+           '<td><input class="ipt" style="width:150px" type="date" aria-label="תאריך עדכון" data-pupd="'+i+'" value="'+esc(p.updated||"")+'"></td>'+
            '<td><span class="tag '+esc(p.status)+'" data-plan="'+i+'">'+lbl+'</span></td>'+
+           '<td><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" data-pappr="'+i+'"'+(p.approved?' checked':'')+'>'+(p.approved?'<span class="tag ro okb">מאושר לביצוע</span>':'<span style="color:var(--muted);font-size:12.5px">לא מאושר</span>')+'</label></td>'+
            '<td>'+filesCell(p,i,true)+'</td>'+
            '<td><button class="delx" aria-label="מחיקה" data-delplan="'+i+'">×</button></td></tr>';
       } else {
-        r+='<tr><td>'+esc(p.nm)+'</td><td><span class="tag ro '+esc(p.status)+'">'+lbl+'</span></td><td>'+filesCell(p,i,false)+'</td></tr>';
+        r+='<tr'+(p.approved?' class="approved"':'')+'><td>'+esc(p.nm)+'</td><td style="white-space:nowrap">V'+ver+'</td><td style="white-space:nowrap">'+esc(fmtDate(p.updated))+'</td>'+
+           '<td><span class="tag ro '+esc(p.status)+'">'+lbl+'</span></td>'+
+           '<td>'+(p.approved?'<span class="tag ro okb">מאושר לביצוע · V'+ver+'</span>':'<span style="color:var(--muted);font-size:12.5px">טרם אושר</span>')+'</td>'+
+           '<td>'+filesCell(p,i,false)+'</td></tr>';
       }
     });
     r+='</table>';
@@ -635,19 +670,57 @@
        '<div class="hint">"סוג עבודה" קובע באיזה בלוק המשימה תופיע ב"הבוקר שלי" (נקבע אוטומטית לפי הנוסח, ואפשר לשנות בלחיצה). "ממתין ל" משמש לסינון שם.</div>';
     return r;
   }
+  function meetingText(e){
+    var t="סיכום פגישה · "+fmtDate(e.date)+(e.title?" · "+e.title:"");
+    if(e.parts) t+="\nמשתתפים: "+e.parts;
+    if(e.decisions) t+="\n\nהחלטות:\n"+e.decisions;
+    if(e.todos&&e.todos.length) t+="\n\nמשימות להמשך:\n"+e.todos.map(function(x){return "• "+x;}).join("\n");
+    if(e.text) t+="\n\n"+e.text;
+    return t;
+  }
   function journalHtml(P){
-    var r='<div class="cred"><div style="flex:0 0 170px"><label class="klabel">תאריך</label><input class="ipt" type="date" id="jDate" value="'+today()+'"></div>'+
-          '<div style="flex:1 1 300px"><label class="klabel">סיכום פגישה / הערה</label><textarea class="ipt" id="jText" rows="2"></textarea></div></div>'+
-          '<div class="addrow"><button class="btn ghost sm" id="jAdd">+ הוסף ליומן</button></div>';
+    var r='<div class="cred"><div style="flex:0 0 170px"><label class="klabel" for="jDate">תאריך</label><input class="ipt" type="date" id="jDate" value="'+today()+'"></div>'+
+          '<div style="flex:1 1 220px"><label class="klabel" for="jTitle">נושא הפגישה</label><input class="ipt" id="jTitle" placeholder="למשל: פגישת שטח עם הקבלן"></div>'+
+          '<div style="flex:1 1 220px"><label class="klabel" for="jParts">משתתפים</label><input class="ipt" id="jParts" placeholder="שירז, הלקוח, הקבלן"></div></div>'+
+          '<div class="cred" style="margin-top:10px"><div style="flex:1 1 280px"><label class="klabel" for="jDec">החלטות</label><textarea class="ipt" id="jDec" rows="3" placeholder="מה סוכם בפגישה"></textarea></div>'+
+          '<div style="flex:1 1 280px"><label class="klabel" for="jTodo">משימות להמשך (שורה לכל משימה)</label><textarea class="ipt" id="jTodo" rows="3" placeholder="לעדכן תכנית חשמל&#10;לשלוח הצעת מחיר ללקוח"></textarea></div></div>'+
+          '<div class="addrow"><button class="btn primary sm" id="jAdd">שמירת סיכום פגישה</button> <span class="err" id="jErr" role="status"></span></div>';
     var idx=P.journal.map(function(e,i){return i;}).sort(function(a,b){ return String(P.journal[b].date).localeCompare(String(P.journal[a].date)) || b-a; });
     idx.forEach(function(i){
-      var e=P.journal[i];
-      r+='<div class="jentry"><div class="jhead"><b>'+esc(fmtDate(e.date))+'</b><button class="delx" aria-label="מחיקה" data-deljr="'+i+'">×</button></div>'+
-         '<div>'+esc(e.text).replace(/\n/g,"<br>")+'</div></div>';
+      var e=P.journal[i], structured=!!(e.decisions||e.parts||e.title||(e.todos&&e.todos.length));
+      r+='<div class="jentry"><div class="jhead"><b>'+esc(fmtDate(e.date))+(e.title?' · '+esc(e.title):'')+'</b><button class="delx" aria-label="מחיקה" data-deljr="'+i+'">×</button></div>';
+      if(e.parts) r+='<div class="jmeet"><b>משתתפים</b>'+esc(e.parts)+'</div>';
+      if(e.decisions) r+='<div class="jmeet"><b>החלטות</b>'+esc(e.decisions).replace(/\n/g,"<br>")+'</div>';
+      if(e.todos&&e.todos.length) r+='<div class="jmeet"><b>משימות להמשך</b>'+e.todos.map(function(x){return "• "+esc(x);}).join("<br>")+'</div>';
+      if(e.text) r+='<div>'+esc(e.text).replace(/\n/g,"<br>")+'</div>';
+      if(structured) r+='<div class="addrow"><button class="btn ghost sm" data-jsend="'+i+'">'+(e.sent?'נשלח ללקוח ✓ · שליחה חוזרת':'שלח סיכום לצ׳אט הלקוח')+'</button> '+
+         ((e.todos&&e.todos.length)?'<button class="btn ghost sm" data-jconv="'+i+'"'+(e.converted?' disabled':'')+'>'+(e.converted?'המשימות נוספו לרשימה ✓':'המר משימות לרשימת המשימות')+'</button>':'')+'</div>';
+      r+='</div>';
     });
     return r;
   }
-
+  function wireJournal(P){
+    var b=$("jAdd"); if(!b) return;
+    b.onclick=function(){
+      var e={date:$("jDate").value||today(),title:$("jTitle").value.trim(),parts:$("jParts").value.trim(),decisions:$("jDec").value.trim(),
+             todos:$("jTodo").value.split("\n").map(function(x){return x.trim();}).filter(Boolean)};
+      if(!e.title&&!e.decisions&&!e.todos.length){ $("jErr").textContent="יש למלא לפחות נושא, החלטות או משימות"; return; }
+      P.journal.push(e); save(P); renderAdmin();
+    };
+    document.querySelectorAll('[data-jsend]').forEach(function(el){ el.onclick=async function(){
+      var e=P.journal[+el.dataset.jsend];
+      if(!confirm("לשלוח את סיכום הפגישה ללקוח בצ׳אט של הפרויקט? הלקוח יראה את המשתתפים, ההחלטות והמשימות.")) return;
+      el.disabled=true;
+      var r=await sb.from("messages").insert({project_id:P.id,sender_role:"admin",body:meetingText(e).slice(0,3900)});
+      if(r.error){ el.disabled=false; setStat("הסיכום לא נשלח",true); return; }
+      e.sent=today(); save(P); renderAdmin();
+    }; });
+    document.querySelectorAll('[data-jconv]').forEach(function(el){ el.onclick=function(){
+      var e=P.journal[+el.dataset.jconv]; if(e.converted) return;
+      (e.todos||[]).forEach(function(x){ P.tasks.push({t:x,pri:"mid",due:"",done:false}); });
+      e.converted=today(); save(P); renderAdmin();
+    }; });
+  }
   /* ===== admin project ===== */
   function renderAdmin(){
     var P=active(), m=$("main");
@@ -670,15 +743,16 @@
     h+='<div class="sectitle">משימות <span style="font-size:11px;color:var(--muted);font-weight:400">· '+openTasks+' פתוחות · פנימי</span></div><div class="card">'+tasksTable(P)+'</div>';
     h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+budgetTable(P)+'<div class="hint">לחיצה על התגית: מחויב ← בהצעה ← הערכה. הסכומים כוללים מע״מ. הלקוח רואה רק שורות שסומנו ב״הצג ללקוח״ (שם, סכום, שולם ויתרה), תחת ״תשלומים לקבלן ולספקים״. כברירת מחדל הכול מוסתר.</div></div>';
     h+='<div class="sectitle">שלבי התקדמות</div><div class="card">'+stagesHtml(P,true)+'</div>';
-    h+='<div class="sectitle">שכר הטרחה שלי <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+paymentsTable(P,true)+'</div>';
+    h+='<div class="sectitle">שלבי תשלום · שכר טרחה <span style="font-size:11px;color:var(--muted);font-weight:400">· מוצג ללקוח (מה שולם ומה ממתין) — ניתן לכיבוי ב״מה הלקוח רואה״</span></div><div class="card">'+paymentsTable(P,true)+'</div>';
     h+='<div class="sectitle">ספקים · סטטוס סגירה</div><div class="card">'+suppliersTable(P,true)+'<div class="hint">לחיצה על התגית: סגור ← בתהליך ← לא סגור. ספק מוצג ללקוח אוטומטית רק כשהוא "סגור"; המתג מאפשר להציג או להסתיר ספק בודד ידנית (שינוי סטטוס מחזיר אותו למצב האוטומטי). ההערות פנימיות תמיד.</div></div>';
-    h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,true)+'<div class="hint">לחיצה על התגית: הושלם ← בתהליך ← לביצוע. קבצים שמועלים כאן (עד 50MB לקובץ) זמינים גם ללקוח של הפרויקט.</div></div>';
+    h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,true)+'<div class="hint">לחיצה על התגית: הושלם ← בתהליך ← לביצוע. שינוי מספר גרסה מבטל את הסימון ״מאושר לביצוע״ עד שתאשרי את הגרסה החדשה, ומעדכן את התאריך. קבצים שמועלים כאן (עד 50MB לקובץ) זמינים גם ללקוח של הפרויקט.</div></div>';
+    h+='<div class="sectitle">מעקב רכישות וחומרים <span style="font-size:11px;color:var(--muted);font-weight:400">· FF&amp;E</span></div><div class="card">'+ffeTable(P,true)+'</div>';
     h+='<div class="sectitle">יומן פגישות <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי</span></div><div class="card">'+journalHtml(P)+'</div>';
 
     h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,true)+'</div>';
     h+='<div class="sectitle">הודעות עם הלקוח</div><div class="card">'+chatBox()+'</div>';
     h+='<div class="sectitle">קבלות, הצעות מחיר ומסמכים מהלקוח</div><div class="card">'+clientFilesBox()+'</div>';
-    h+='<div class="sectitle">מה הלקוח רואה</div><div class="card">'+visHtml(P)+'<div class="hint">כיבוי מתג מסתיר את החלק הזה מהלקוח (נאכף בשרת, לא רק במסך). שלבי ההתקדמות מוצגים תמיד. שכר הטרחה שלך, שורות תקציב שלא סומנו, המשימות, היומן, ההערות על ספקים ומסמכים פנימיים אינם מוצגים ללקוח אף פעם. כדי לראות בדיוק מה הלקוח רואה, הפעילי "תצוגת לקוח" למעלה.</div></div>';
+    h+='<div class="sectitle">מה הלקוח רואה</div><div class="card">'+visHtml(P)+'<div class="hint">כיבוי מתג מסתיר את החלק הזה מהלקוח (נאכף בשרת, לא רק במסך). שלבי ההתקדמות מוצגים תמיד. שורות תקציב שלא סומנו, אחוזי עמלה, המשימות, היומן, ההערות הפנימיות ומסמכים פנימיים אינם מוצגים ללקוח אף פעם. כדי לראות בדיוק מה הלקוח רואה, הפעילי "תצוגת לקוח" למעלה.</div></div>';
     h+='<div class="sectitle">גישת הלקוח לפרויקט זה</div><div class="card"><div class="cred">'+
        '<div><label class="klabel">האימייל של הלקוח</label><input class="ipt" id="cEmail" type="email" dir="ltr" value="'+esc(P.clientEmail)+'" placeholder="client@example.com"></div></div>'+
        '<div class="hint">הלקוח נכנס לכתובת המערכת, לוחץ "כניסה ראשונה", ויוצר סיסמה עם האימייל הזה בדיוק. הוא יראה רק את הפרויקט הזה: שלבים, תשלומים, ימי רכישות, ספקים ותוכניות. התקציב הפנימי וההערות לא מוצגים לו.</div></div>';
@@ -688,6 +762,7 @@
     wireAdmin(P);
     wireChat(P);
     wireClientFiles(P);
+    buildNav();
     document.querySelectorAll('[data-vis]').forEach(function(el){ el.onclick=function(){ var k=el.dataset.vis; P.vis=P.vis||{}; P.vis[k]=(P.vis[k]===false); save(P); renderAdmin(); }; });
   }
   function wireAdmin(P){
@@ -736,7 +811,7 @@
       var path=P.id+"/"+id+ext;
       var r=await sb.storage.from("plans").upload(path,f,{contentType:f.type||"application/octet-stream"});
       if(r.error){ setStat("העלאת הקובץ נכשלה",true); return; }
-      P.plans[i].files=P.plans[i].files||[]; P.plans[i].files.push({path:path,name:f.name,at:today()}); re(); }; });
+      P.plans[i].files=P.plans[i].files||[]; P.plans[i].files.push({path:path,name:"V"+(+P.plans[i].ver||1)+" · "+f.name,at:today()}); P.plans[i].updated=today(); re(); }; });
     document.querySelectorAll('[data-delfile]').forEach(function(el){ el.onclick=async function(){
       var a=el.dataset.delfile.split(":"), i=+a[0], j=+a[1], f=P.plans[i].files[j];
       if(!confirm('למחוק את הקובץ "'+f.name+'"?')) return;
@@ -769,13 +844,77 @@
     document.querySelectorAll('[data-twait]').forEach(function(el){ el.onclick=function(){ var t=P.tasks[+el.dataset.twait]; t.wait=({"":"client",client:"supplier",supplier:""})[WAITL[t.wait]?t.wait:""]; re(); }; });
     document.querySelectorAll('[data-deltask]').forEach(function(el){ el.onclick=function(){ P.tasks.splice(+el.dataset.deltask,1); re(); }; });
     // journal
-    $("jAdd").onclick=function(){ var tx=$("jText").value.trim(); if(!tx) return; P.journal.push({date:$("jDate").value||today(),text:tx}); re(); };
     document.querySelectorAll('[data-deljr]').forEach(function(el){ el.onclick=function(){ if(!confirm("למחוק את הרשומה מהיומן?")) return; P.journal.splice(+el.dataset.deljr,1); re(); }; });
+    document.querySelectorAll('[data-pver]').forEach(function(el){ el.onchange=function(){ var p=P.plans[+el.dataset.pver], v=Math.max(1,Math.round(+el.value||1)); if(v!==(+p.ver||1)){ p.ver=v; p.approved=false; p.updated=today(); } re(); }; });
+    document.querySelectorAll('[data-pupd]').forEach(function(el){ el.onchange=function(){ P.plans[+el.dataset.pupd].updated=el.value; save(P); }; });
+    document.querySelectorAll('[data-pappr]').forEach(function(el){ el.onchange=function(){ var p=P.plans[+el.dataset.pappr]; p.approved=el.checked; if(el.checked&&!p.updated) p.updated=today(); re(); }; });
+    wireFfe(P);
+    wireJournal(P);
     document.querySelectorAll('[data-pfield]').forEach(function(el){ el.onchange=function(){ P.plans[+el.dataset.i][el.dataset.pfield]=el.value; save(P); }; });
   }
 
   /* ===== client ===== */
-  var VIS=[["payments","תשלומים לקבלן ולספקים (רק שורות שסומנו \"הצג ללקוח\")"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (רק מי שסומן גלוי ללקוח)"],["plans","תוכניות עבודה וקבצים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
+  var FCAT=["ריצוף","סניטריה","תאורה","ריהוט","אחר"];
+  var FSL={pick:"לבחירה",chosen:"נבחר",ordered:"הוזמן",delivered:"סופק לשטח"}, FSC={pick:"todo",chosen:"wait",ordered:"prog",delivered:"ok"};
+  function ffeRisk(P,x){
+    var st=FSL[x.status]?x.status:"pick"; if(st==="delivered") return null;
+    var dl=daysLeft(P.shoppingDeadline), eta=x.eta?daysLeft(x.eta):null;
+    if(st==="ordered") return (eta!=null&&eta<0)?{bad:true,txt:"אספקה באיחור של "+(-eta)+" ימים"}:null;
+    if(eta!=null&&eta<0) return {bad:true,txt:"תאריך האספקה עבר ועוד לא הוזמן"};
+    if(dl!=null&&dl<0) return {bad:true,txt:"עבר יעד הרכישות ועוד לא הוזמן"};
+    if(dl!=null&&dl<=7) return {bad:false,txt:"עלול להתעכב · יעד הרכישות בעוד "+dl+" ימים"};
+    return null;
+  }
+  function ffeTable(P,editable){
+    var L=P.ffe||[], dl=daysLeft(P.shoppingDeadline);
+    var cnt={pick:0,chosen:0,ordered:0,delivered:0}; L.forEach(function(x){ cnt[FSL[x.status]?x.status:"pick"]++; });
+    var r='<div class="hint" style="margin:0 0 10px">'+(P.shoppingDeadline?'יעד הרכישות: <b>'+esc(fmtDate(P.shoppingDeadline))+'</b>'+(dl!=null?' ('+(dl<0?'עבר':'בעוד '+dl+' ימים')+')':'')+' · ':'')+
+          'לבחירה '+cnt.pick+' · נבחר '+cnt.chosen+' · הוזמן '+cnt.ordered+' · סופק '+cnt.delivered+'</div>';
+    if(!L.length&&!editable) return r;
+    r+='<table class="wide"><tr><th>קטגוריה</th><th>פריט</th><th>ספק</th><th>סטטוס</th><th>אספקה משוערת</th><th>התראה</th>'+(editable?'<th>הערה (פנימי)</th><th></th>':'')+'</tr>';
+    L.forEach(function(x,i){
+      var st=FSL[x.status]?x.status:"pick", k=ffeRisk(P,x);
+      var warn=k?'<span class="tag ro '+(k.bad?'no':'wait')+'">'+esc(k.txt)+'</span>':'';
+      if(editable){
+        r+='<tr><td><select class="ipt" aria-label="קטגוריה" data-ff="cat" data-i="'+i+'">'+FCAT.map(function(c){return '<option'+(c===x.cat?' selected':'')+'>'+c+'</option>';}).join("")+'</select></td>'+
+           '<td><input class="ipt" style="min-width:160px" aria-label="פריט" data-ff="item" data-i="'+i+'" value="'+esc(x.item)+'"></td>'+
+           '<td><input class="ipt" style="min-width:110px" aria-label="ספק" data-ff="supplier" data-i="'+i+'" value="'+esc(x.supplier)+'"></td>'+
+           '<td><span class="tag '+FSC[st]+'" data-ffst="'+i+'">'+FSL[st]+'</span></td>'+
+           '<td><input class="ipt" style="width:150px" type="date" aria-label="תאריך אספקה משוער" data-ff="eta" data-i="'+i+'" value="'+esc(x.eta||"")+'"></td>'+
+           '<td>'+warn+'</td>'+
+           '<td><input class="ipt" style="min-width:130px" aria-label="הערה פנימית" data-ff="note" data-i="'+i+'" value="'+esc(x.note)+'"></td>'+
+           '<td><button class="delx" aria-label="מחיקה" data-delff="'+i+'">×</button></td></tr>';
+      } else {
+        r+='<tr><td>'+esc(x.cat)+'</td><td>'+esc(x.item)+'</td><td>'+esc(x.supplier)+'</td><td><span class="tag ro '+FSC[st]+'">'+FSL[st]+'</span></td><td style="white-space:nowrap">'+esc(fmtDate(x.eta))+'</td><td>'+warn+'</td></tr>';
+      }
+    });
+    r+='</table>';
+    if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addFf">+ הוסף פריט</button></div><div class="hint">לחיצה על התגית: לבחירה ← נבחר ← הוזמן ← סופק לשטח. התראה מופיעה כשפריט לא הוזמן ויעד הרכישות קרוב או עבר, או כשאספקה מאחרת. ההערות פנימיות.</div>';
+    return r;
+  }
+  function wireFfe(P){
+    var a=$("addFf"); if(!a) return;
+    function re(){ save(P); renderAdmin(); }
+    a.onclick=function(){ P.ffe.push({cat:"ריצוף",item:"",supplier:"",status:"pick",eta:"",note:""}); re(); };
+    document.querySelectorAll('[data-ff]').forEach(function(el){ el.onchange=function(){ P.ffe[+el.dataset.i][el.dataset.ff]=el.value; if(el.dataset.ff==="eta") re(); else save(P); }; });
+    document.querySelectorAll('[data-ffst]').forEach(function(el){ el.onclick=function(){ var x=P.ffe[+el.dataset.ffst]; x.status=({pick:"chosen",chosen:"ordered",ordered:"delivered",delivered:"pick"})[FSL[x.status]?x.status:"pick"]; re(); }; });
+    document.querySelectorAll('[data-delff]').forEach(function(el){ el.onclick=function(){ P.ffe.splice(+el.dataset.delff,1); re(); }; });
+  }
+  function buildNav(){
+    var m=$("main"); if(!m) return;
+    var ts=[].slice.call(m.querySelectorAll(".sectitle")); if(ts.length<4) return;
+    var nav=document.createElement("nav"); nav.className="secnav"; nav.setAttribute("aria-label","ניווט בתוך הפרויקט");
+    var tb=document.querySelector(".topbar"); nav.style.top=(tb?tb.offsetHeight:0)+"px";
+    ts.forEach(function(t,i){
+      var label=(t.firstChild&&t.firstChild.nodeType===3?t.firstChild.textContent:t.textContent).trim().replace(/[·\s]+$/,"");
+      if(!label) return; t.id="sec"+i;
+      var b=document.createElement("button"); b.type="button"; b.textContent=label;
+      b.onclick=function(){ t.scrollIntoView({behavior:"smooth",block:"start"}); };
+      nav.appendChild(b);
+    });
+    m.insertBefore(nav,m.firstChild);
+  }
+  var VIS=[["fee","שלבי תשלום (שכר הטרחה: מה שולם ומה ממתין)"],["payments","תשלומים לקבלן ולספקים (רק שורות שסומנו \"הצג ללקוח\")"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (רק מי שסומן גלוי ללקוח)"],["plans","תוכניות עבודה וקבצים"],["ffe","מעקב רכישות וחומרים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
   function visHtml(P){
     var V=P.vis||{};
     return VIS.map(function(v){ var on=V[v[0]]!==false;
@@ -786,9 +925,10 @@
   function viewOf(P){
     var C=JSON.parse(JSON.stringify(P)), V=C.vis||{};
     C.tasks=[]; C.journal=[]; C.budgetLines=[];
+    C.ffe=(V.ffe===false)?[]:(C.ffe||[]).map(function(x){ delete x.note; return x; });
     C.suppliers=C.suppliers.filter(supVisible).map(function(x){ delete x.note; delete x.show; return x; });
     C.docs=C.docs.filter(function(d){ return !d.internal; });
-    C.payments=[];
+    if(V.fee===false) C.payments=[]; else C.payments=C.payments.map(function(x){ return {title:x.title,amount:x.amount,paid:x.paid}; });
     C.clientBudget=(V.payments===false)?[]:P.budgetLines.filter(function(l){return l.show;}).map(function(l){return {nm:l.nm,amount:l.amount,paid:l.paid};});
     if(V.suppliers===false) C.suppliers=[];
     if(V.plans===false) C.plans=[];
@@ -879,6 +1019,8 @@
     if(can("suppliers")&&P.suppliers.length) h+='<div class="card"><h3>אנשי מקצוע בפרויקט</h3><div class="kpi">'+P.suppliers.length+'</div><div class="klabel">ספקים ובעלי מקצוע שנסגרו</div></div>';
     h+='</div>';
     h+='<div class="sectitle">שלבי הפרויקט</div><div class="card">'+stagesHtml(P,false)+'</div>';
+    var feeTot=P.payments.reduce(function(a,b){return a+(+b.amount||0);},0);
+    if(can("fee")&&feeTot>0) h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,false)+'</div>';
     if(can("payments")&&CB.length){
       var ta=0,tp=0, t='<table><tr><th>פריט</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th></tr>';
       CB.forEach(function(l){ var a=+l.amount||0,p=+l.paid||0; ta+=a; tp+=p; t+='<tr><td>'+esc(l.nm)+'</td><td class="money">'+money(a)+'</td><td class="money">'+money(p)+'</td><td class="money">'+money(a-p)+'</td></tr>'; });
@@ -887,6 +1029,7 @@
     }
     if(can("suppliers")&&P.suppliers.length) h+='<div class="sectitle">ספקים ובעלי מקצוע</div><div class="card">'+suppliersTable(P,false)+'</div>';
     if(can("plans")&&P.plans.length) h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,false)+'</div>';
+    if(can("ffe")&&P.ffe&&P.ffe.length) h+='<div class="sectitle">רכישות וחומרים</div><div class="card">'+ffeTable(P,false)+'</div>';
     if(can("docs")&&P.docs.length) h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,false)+'</div>';
     if(can("uploads")) h+='<div class="sectitle">המסמכים שלי · קבלות והצעות מחיר</div><div class="card">'+clientFilesBox()+'</div>';
     if(can("chat")) h+='<div class="sectitle">הודעות · שאלות למעצבת</div><div class="card">'+chatBox()+'</div>';
@@ -894,6 +1037,7 @@
     m.innerHTML=h;
     wireFiles();
     if(can("chat")) wireChat(P);
+    buildNav();
     if(can("uploads")) wireClientFiles(P);
   }
 
@@ -942,6 +1086,9 @@
         if(near) alerts.push({cls:pd<=0?"bad":"warn",pid:P.id,txt:(pd<0?"תשלום באיחור":(pd===0?"תשלום היום":"תשלום בעוד "+pd+" ימים"))+" · "+np.title+" ("+money(np.amount)+") · "+P.name}); }
       var offers=P.budgetLines.filter(function(l){return l.status==="offer"&&(+l.amount||0)>0;}).length;
       if(offers) add({block:"approvals",id:"of",txt:offers+" הצעות מחיר בתקציב ממתינות להחלטה",wait:"client"});
+      var ffBad=0; (P.ffe||[]).forEach(function(x,i){ var k=ffeRisk(P,x); if(!k) return; if(k.bad) ffBad++;
+        add({block:"approvals",id:"ff"+i,txt:"רכש · "+(x.item||x.cat)+" — "+k.txt,urgent:k.bad,wait:x.status==="ordered"?"supplier":(x.status==="pick"||!x.status?"client":"")}); });
+      if(ffBad) alerts.push({cls:"bad",pid:P.id,txt:ffBad+" פריטי רכש באיחור או אחרי היעד · "+P.name});
       var dl=daysLeft(P.shoppingDeadline);
       if(dl!=null&&dl<=14){ add({block:"approvals",id:"shop",txt:dl<0?"יעד הרכישות עבר":("נותרו "+dl+" ימים ליעד הרכישות"),urgent:dl<=3,tag:dl<0?"עבר":""});
         alerts.push({cls:dl<=3?"bad":"warn",pid:P.id,txt:(dl<0?"יעד הרכישות עבר":"יעד הרכישות בעוד "+dl+" ימים")+" · "+P.name}); }
@@ -1024,19 +1171,31 @@
     var h='<div class="sectitle">מהמייל · הצעות מחיר, תיאומים ותשובות<a class="btn primary sm" style="text-decoration:none" target="_blank" rel="noopener noreferrer" href="https://mail.google.com/">פתיחת תיבת המייל</a></div><div class="card">';
     if(!rows.length) h+='<div class="hint" style="margin:0">עדיין לא רוכזו כאן פריטים מהמייל. הפריטים נאספים מתיבת המייל העסקית ומופיעים כאן עם קישור למייל המקורי.</div>';
     else {
-      h+='<table class="wide"><tr><th>טופל</th><th>תאריך</th><th>סוג</th><th>מאת</th><th>נושא ותקציר</th><th>פרויקט</th><th>קישור</th><th></th></tr>';
+      h+='<table class="wide"><tr><th>טופל</th><th>תאריך</th><th>סוג</th><th>מאת</th><th>נושא ותקציר</th><th>פרויקט</th><th>פעולות מהירות</th><th>קישור</th><th></th></tr>';
       rows.forEach(function(x){ var k=IK[x.kind]?x.kind:"other";
         var opts='<option value="">—</option>'+S.projects.map(function(p){ return '<option value="'+esc(p.id)+'"'+(p.id===x.project_id?' selected':'')+'>'+esc(p.name)+'</option>'; }).join("");
         var lk=/^https:\/\//i.test(x.link||"")?'<a class="plink" target="_blank" rel="noopener noreferrer" href="'+esc(x.link)+'">פתיחה</a>':'';
         h+='<tr'+(x.done?' style="opacity:.5"':'')+'><td><input type="checkbox" aria-label="סימון כטופל" data-ibdone="'+x.id+'"'+(x.done?' checked':'')+'></td><td style="white-space:nowrap">'+esc(fmtDate(x.received_at))+'</td>'+
            '<td><span class="tag ro '+IC[k]+'">'+IK[k]+'</span></td><td>'+esc(x.from_name||x.from_email)+'</td><td><b>'+esc(x.subject)+'</b><div style="color:var(--muted)">'+esc(x.summary)+'</div></td>'+
-           '<td><select class="ipt" aria-label="שיוך לפרויקט" data-ibproj="'+x.id+'">'+opts+'</select></td><td>'+lk+'</td><td><button class="delx" aria-label="הסרה מהרשימה" data-ibdel="'+x.id+'">×</button></td></tr>'; });
+           '<td><select class="ipt" aria-label="שיוך לפרויקט" data-ibproj="'+x.id+'">'+opts+'</select></td>'+
+           '<td style="white-space:nowrap"><button class="btn ghost sm" data-ibtask="'+x.id+'">הפוך למשימה בפרויקט</button> <button class="btn ghost sm" data-ibquote="'+x.id+'">הוסף כהצעת מחיר לתקציב</button><div class="hint" style="margin:4px 0 0" id="ibmsg'+x.id+'"></div></td><td>'+lk+'</td><td><button class="delx" aria-label="הסרה מהרשימה" data-ibdel="'+x.id+'">×</button></td></tr>'; });
       h+='</table>';
     }
     h+='</div>';
     body.innerHTML=h;
     document.querySelectorAll('[data-ibdone]').forEach(function(el){ el.onchange=async function(){ await sb.from("inbox_items").update({done:el.checked}).eq("id",+el.dataset.ibdone); renderInbox(); }; });
     document.querySelectorAll('[data-ibproj]').forEach(function(el){ el.onchange=async function(){ await sb.from("inbox_items").update({project_id:el.value||null}).eq("id",+el.dataset.ibproj); }; });
+    function ibAct(el,kind){
+      var id=+el.dataset[kind], x=rows.filter(function(r){return r.id===id;})[0], msg=$("ibmsg"+id);
+      var sel=document.querySelector('[data-ibproj="'+id+'"]'), P=byId(sel&&sel.value);
+      if(!P){ msg.style.color="var(--bad)"; msg.textContent="יש לבחור קודם פרויקט בעמודה ״פרויקט״"; return; }
+      var who=x.from_name||x.from_email||"";
+      if(kind==="ibtask"){ P.tasks.push({t:(x.subject||"פריט מהמייל")+(who?" — "+who:""),pri:"mid",due:"",done:false,cat:x.kind==="quote"?"approvals":"calls",wait:""}); msg.textContent="נוספה משימה בפרויקט "+P.name+" ✓"; }
+      else { P.budgetLines.push({nm:(who?who+" — ":"")+(x.subject||"הצעת מחיר"),amount:0,paid:0,status:"offer"}); msg.textContent="נוספה שורת ״בהצעה״ בתקציב של "+P.name+" — יש להשלים שם את הסכום ✓"; }
+      msg.style.color="var(--ok)"; save(P); flush();
+    }
+    document.querySelectorAll('[data-ibtask]').forEach(function(el){ el.onclick=function(){ ibAct(el,"ibtask"); }; });
+    document.querySelectorAll('[data-ibquote]').forEach(function(el){ el.onclick=function(){ ibAct(el,"ibquote"); }; });
     document.querySelectorAll('[data-ibdel]').forEach(function(el){ el.onclick=async function(){ if(!confirm("להסיר את הפריט מהרשימה? המייל עצמו לא נמחק.")) return; await sb.from("inbox_items").delete().eq("id",+el.dataset.ibdel); renderInbox(); }; });
   }
 
