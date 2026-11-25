@@ -871,7 +871,7 @@
     var r='<div class="hint" style="margin:0 0 10px">'+(P.shoppingDeadline?'יעד הרכישות: <b>'+esc(fmtDate(P.shoppingDeadline))+'</b>'+(dl!=null?' ('+(dl<0?'עבר':'בעוד '+dl+' ימים')+')':'')+' · ':'')+
           'לבחירה '+cnt.pick+' · נבחר '+cnt.chosen+' · הוזמן '+cnt.ordered+' · סופק '+cnt.delivered+'</div>';
     if(!L.length&&!editable) return r;
-    r+='<table class="wide"><tr><th>קטגוריה</th><th>פריט</th><th>ספק</th><th>סטטוס</th><th>אספקה משוערת</th><th>התראה</th>'+(editable?'<th>הערה (פנימי)</th><th></th>':'')+'</tr>';
+    r+='<table class="wide"><tr><th>קטגוריה</th><th>פריט</th><th>ספק</th><th>סטטוס</th><th>אספקה משוערת</th><th>התראה</th>'+(editable?'<th>שולם ע״י הלקוח</th><th>הערה (פנימי)</th><th></th>':'')+'</tr>';
     L.forEach(function(x,i){
       var st=FSL[x.status]?x.status:"pick", k=ffeRisk(P,x);
       var warn=k?'<span class="tag ro '+(k.bad?'no':'wait')+'">'+esc(k.txt)+'</span>':'';
@@ -882,6 +882,7 @@
            '<td><span class="tag '+FSC[st]+'" data-ffst="'+i+'">'+FSL[st]+'</span></td>'+
            '<td><input class="ipt" style="width:150px" type="date" aria-label="תאריך אספקה משוער" data-ff="eta" data-i="'+i+'" value="'+esc(x.eta||"")+'"></td>'+
            '<td>'+warn+'</td>'+
+           '<td style="text-align:center"><input type="checkbox" aria-label="שולם על ידי הלקוח — מוצג ללקוח" data-ffpaid="'+i+'"'+(x.paid?' checked':'')+'></td>'+
            '<td><input class="ipt" style="min-width:130px" aria-label="הערה פנימית" data-ff="note" data-i="'+i+'" value="'+esc(x.note)+'"></td>'+
            '<td><button class="delx" aria-label="מחיקה" data-delff="'+i+'">×</button></td></tr>';
       } else {
@@ -889,7 +890,7 @@
       }
     });
     r+='</table>';
-    if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addFf">+ הוסף פריט</button></div><div class="hint">לחיצה על התגית: לבחירה ← נבחר ← הוזמן ← סופק לשטח. התראה מופיעה כשפריט לא הוזמן ויעד הרכישות קרוב או עבר, או כשאספקה מאחרת. ההערות פנימיות.</div>';
+    if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addFf">+ הוסף פריט</button></div><div class="hint">לחיצה על התגית: לבחירה ← נבחר ← הוזמן ← סופק לשטח. התראה מופיעה כשפריט לא הוזמן ויעד הרכישות קרוב או עבר, או כשאספקה מאחרת. הלקוח רואה רק פריטים שסומנו ״שולם ע״י הלקוח״; ההערות פנימיות תמיד.</div>';
     return r;
   }
   function wireFfe(P){
@@ -898,6 +899,7 @@
     a.onclick=function(){ P.ffe.push({cat:"ריצוף",item:"",supplier:"",status:"pick",eta:"",note:""}); re(); };
     document.querySelectorAll('[data-ff]').forEach(function(el){ el.onchange=function(){ P.ffe[+el.dataset.i][el.dataset.ff]=el.value; if(el.dataset.ff==="eta") re(); else save(P); }; });
     document.querySelectorAll('[data-ffst]').forEach(function(el){ el.onclick=function(){ var x=P.ffe[+el.dataset.ffst]; x.status=({pick:"chosen",chosen:"ordered",ordered:"delivered",delivered:"pick"})[FSL[x.status]?x.status:"pick"]; re(); }; });
+    document.querySelectorAll('[data-ffpaid]').forEach(function(el){ el.onchange=function(){ P.ffe[+el.dataset.ffpaid].paid=el.checked; save(P); }; });
     document.querySelectorAll('[data-delff]').forEach(function(el){ el.onclick=function(){ P.ffe.splice(+el.dataset.delff,1); re(); }; });
   }
   function buildNav(){
@@ -914,7 +916,7 @@
     });
     m.insertBefore(nav,m.firstChild);
   }
-  var VIS=[["fee","שלבי תשלום (שכר הטרחה: מה שולם ומה ממתין)"],["payments","תשלומים לקבלן ולספקים (רק שורות שסומנו \"הצג ללקוח\")"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (רק מי שסומן גלוי ללקוח)"],["plans","תוכניות עבודה וקבצים"],["ffe","מעקב רכישות וחומרים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
+  var VIS=[["fee","שלבי תשלום (שכר הטרחה: מה שולם ומה ממתין)"],["payments","תשלומים לקבלן ולספקים (רק שורות שסומנו \"הצג ללקוח\")"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (רק מי שסומן גלוי ללקוח)"],["plans","תוכניות עבודה וקבצים"],["ffe","רכישות ששולמו (רק פריטים שסומנו ״שולם ע״י הלקוח״)"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
   function visHtml(P){
     var V=P.vis||{};
     return VIS.map(function(v){ var on=V[v[0]]!==false;
@@ -925,7 +927,7 @@
   function viewOf(P){
     var C=JSON.parse(JSON.stringify(P)), V=C.vis||{};
     C.tasks=[]; C.journal=[]; C.budgetLines=[];
-    C.ffe=(V.ffe===false)?[]:(C.ffe||[]).map(function(x){ delete x.note; return x; });
+    C.ffe=(V.ffe===false)?[]:(C.ffe||[]).filter(function(x){ return x.paid===true; }).map(function(x){ delete x.note; return x; });
     C.suppliers=C.suppliers.filter(supVisible).map(function(x){ delete x.note; delete x.show; return x; });
     C.docs=C.docs.filter(function(d){ return !d.internal; });
     if(V.fee===false) C.payments=[]; else C.payments=C.payments.map(function(x){ return {title:x.title,amount:x.amount,paid:x.paid}; });
@@ -1029,7 +1031,7 @@
     }
     if(can("suppliers")&&P.suppliers.length) h+='<div class="sectitle">ספקים ובעלי מקצוע</div><div class="card">'+suppliersTable(P,false)+'</div>';
     if(can("plans")&&P.plans.length) h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,false)+'</div>';
-    if(can("ffe")&&P.ffe&&P.ffe.length) h+='<div class="sectitle">רכישות וחומרים</div><div class="card">'+ffeTable(P,false)+'</div>';
+    if(can("ffe")&&P.ffe&&P.ffe.length) h+='<div class="sectitle">רכישות ששולמו</div><div class="card">'+ffeTable(P,false)+'</div>';
     if(can("docs")&&P.docs.length) h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,false)+'</div>';
     if(can("uploads")) h+='<div class="sectitle">המסמכים שלי · קבלות והצעות מחיר</div><div class="card">'+clientFilesBox()+'</div>';
     if(can("chat")) h+='<div class="sectitle">הודעות · שאלות למעצבת</div><div class="card">'+chatBox()+'</div>';
