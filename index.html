@@ -193,6 +193,20 @@
   .jmeet b{display:block;font-size:11.5px;color:var(--muted);font-weight:700;margin-bottom:1px}
   .pcard{border-color:#ebe6dd;border-radius:16px;padding:20px}
   @media(max-width:620px){ .wrap{padding:18px 12px 60px} .card{padding:15px} .sectitle{margin:28px 0 10px} .tab{padding:9px 11px;font-size:13px} }
+  /* --- contacts as cards --- */
+  .ccards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-bottom:6px}
+  .ccard{background:var(--card);border:1px solid #ebe6dd;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 2px rgba(60,50,40,.04)}
+  .ccard.editing{grid-column:1/-1;border-color:var(--accent)}
+  .chead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .cname{font-weight:700;font-size:15.5px;line-height:1.3}
+  .cperson{font-size:13px;color:var(--muted)}
+  .cline{font-size:13px;text-align:right;color:var(--ink);word-break:break-all}
+  .cnotes{font-size:12.5px;color:var(--muted);line-height:1.5;border-top:1px solid #f1ede6;padding-top:8px;margin-top:4px}
+  .cacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:10px}
+  .cact{font-family:inherit;font-size:12.5px;font-weight:600;text-decoration:none;color:var(--accent);background:var(--soft);border:none;border-radius:16px;padding:6px 12px;cursor:pointer}
+  .cact:hover{background:#e7dfd2}
+  .cact.edit{background:none;border:1px solid var(--line);color:var(--muted);margin-right:auto}
+  .cform{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
 /*STAGE_CSS_END*/
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1140,31 +1154,63 @@
   }
   function drawContacts(){
     var body=$("tabBody"); if(!body) return;
-    var h='<div class="sectitle">ספקים ואנשי קשר<button class="btn primary sm" id="ctAdd">+ איש קשר</button></div><div class="card">';
-    if(!S.contacts.length) h+='<div class="hint" style="margin:0">הרשימה ריקה. הוסיפי ספקים, קבלנים ויועצים שאת עובדת איתם, כולל אחוז העמלה שסוכם.</div>';
-    else {
-      h+='<table class="wide"><tr><th>שם</th><th>תחום</th><th>איש קשר</th><th>טלפון</th><th>מייל</th><th>אתר / קישור</th><th>עמלה %</th><th>הערות</th><th>קישורים</th><th></th></tr>';
-      S.contacts.forEach(function(c){
-        function inp(f,w,extra){ return '<input class="ipt" style="min-width:'+w+'px" aria-label="'+f+'" data-ct="'+f+'" data-id="'+esc(c.id)+'" value="'+esc(c[f]==null?"":c[f])+'" '+(extra||"")+'>'; }
-        var links=[]; if(c.phone) links.push('<a class="plink" href="tel:'+esc(c.phone.replace(/[^0-9+*#]/g,""))+'">חיוג</a>');
-        if(c.email) links.push('<a class="plink" href="mailto:'+esc(c.email)+'">מייל</a>');
-        if(c.url) links.push('<a class="plink" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(c.url))+'">אתר</a>');
-        h+='<tr><td>'+inp("name",120)+'</td><td>'+inp("trade",100)+'</td><td>'+inp("person",100)+'</td><td>'+inp("phone",110,'dir="ltr" inputmode="tel"')+'</td><td>'+inp("email",150,'dir="ltr" type="email"')+'</td>'+
-           '<td>'+inp("url",150,'dir="ltr"')+'</td><td>'+inp("commission_pct",60,'type="number" step="0.5" min="0" max="100"')+'</td><td>'+inp("notes",160)+'</td>'+
-           '<td style="white-space:nowrap">'+links.join(" · ")+'</td><td><button class="delx" aria-label="מחיקת איש הקשר" data-delct="'+esc(c.id)+'">×</button></td></tr>';
+    var q=(S.ctQ||"").trim().toLowerCase(), fc=S.ctCat||"";
+    var catsAll={}; S.contacts.forEach(function(c){ var k=(c.trade||"").trim()||"ללא סיווג"; catsAll[k]=(catsAll[k]||0)+1; });
+    var catNames=Object.keys(catsAll).sort(function(a,b){ return a.localeCompare(b,"he"); });
+    var list=S.contacts.filter(function(c){
+      var k=(c.trade||"").trim()||"ללא סיווג";
+      if(fc&&k!==fc) return false;
+      if(!q) return true;
+      return [c.name,c.trade,c.person,c.phone,c.email,c.notes].join(" ").toLowerCase().indexOf(q)>=0;
+    });
+    var h='<div class="sectitle">ספקים ואנשי קשר<button class="btn primary sm" id="ctAdd">+ איש קשר</button></div>';
+    h+='<div class="filterbar"><input class="ipt" id="ctSearch" style="width:auto;min-width:220px;flex:1 1 220px;max-width:340px" placeholder="חיפוש לפי שם, תחום, טלפון…" aria-label="חיפוש אנשי קשר" value="'+esc(S.ctQ||"")+'">'+
+       '<div class="chips" role="group" aria-label="סינון לפי סיווג"><button class="chip'+(fc?'':' on')+'" data-ctcat="">הכול <b>'+S.contacts.length+'</b></button>'+
+       catNames.map(function(k){ return '<button class="chip'+(fc===k?' on':'')+'" data-ctcat="'+esc(k)+'">'+esc(k)+' <b>'+catsAll[k]+'</b></button>'; }).join("")+'</div></div>';
+    if(!S.contacts.length) h+='<div class="card"><div class="hint" style="margin:0">הרשימה ריקה. הוסיפי ספקים, קבלנים ויועצים שאת עובדת איתם, כולל אחוז העמלה שסוכם.</div></div>';
+    else if(!list.length) h+='<div class="card"><div class="hint" style="margin:0">לא נמצאו אנשי קשר לפי החיפוש או הסינון.</div></div>';
+    var groups={}, order=[];
+    list.forEach(function(c){ var k=(c.trade||"").trim()||"ללא סיווג"; if(!groups[k]){groups[k]=[];order.push(k);} groups[k].push(c); });
+    order.sort(function(a,b){ return a.localeCompare(b,"he"); });
+    order.forEach(function(k){
+      h+='<div class="cat-head">'+esc(k)+' <span style="color:var(--muted);font-weight:400">· '+groups[k].length+'</span></div><div class="ccards">';
+      groups[k].forEach(function(c){
+        var id=esc(c.id);
+        if(S.ctEdit===c.id){
+          function f(label,field,extra){ return '<div><label class="klabel" for="ct_'+field+'_'+id+'">'+label+'</label><input class="ipt" id="ct_'+field+'_'+id+'" data-ct="'+field+'" data-id="'+id+'" value="'+esc(c[field]==null?"":c[field])+'" '+(extra||"")+'></div>'; }
+          h+='<div class="ccard editing"><div class="cform">'+f("שם","name")+f("סיווג / תחום","trade",'list="ctTrades"')+f("איש קשר","person")+f("טלפון","phone",'dir="ltr" inputmode="tel"')+
+             f("מייל","email",'dir="ltr" type="email"')+f("אתר / קישור","url",'dir="ltr"')+f("עמלה %","commission_pct",'type="number" step="0.5" min="0" max="100"')+
+             '<div style="grid-column:1/-1"><label class="klabel" for="ct_notes_'+id+'">הערות</label><textarea class="ipt" rows="2" id="ct_notes_'+id+'" data-ct="notes" data-id="'+id+'">'+esc(c.notes)+'</textarea></div></div>'+
+             '<div class="addrow" style="display:flex;justify-content:space-between;gap:8px"><button class="btn primary sm" data-ctdone="'+id+'">סיום עריכה</button><button class="btn ghost sm" style="color:var(--bad)" data-delct="'+id+'">מחיקה</button></div></div>';
+        } else {
+          var acts=[];
+          if(c.phone){ var tel=c.phone.replace(/[^0-9+*#]/g,""); acts.push('<a class="cact" href="tel:'+esc(tel)+'">חיוג</a>');
+            var wa=tel.replace(/^\+/,"").replace(/^0/,"972"); if(/^9725\d{8}$/.test(wa)) acts.push('<a class="cact" target="_blank" rel="noopener noreferrer" href="https://wa.me/'+wa+'">וואטסאפ</a>'); }
+          if(c.email) acts.push('<a class="cact" href="mailto:'+esc(c.email)+'">מייל</a>');
+          if(c.url) acts.push('<a class="cact" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(c.url))+'">אתר</a>');
+          h+='<div class="ccard"><div class="chead"><div><div class="cname">'+esc(c.name||"ללא שם")+'</div>'+(c.person?'<div class="cperson">'+esc(c.person)+'</div>':'')+'</div>'+
+             (c.commission_pct!=null&&c.commission_pct!==""?'<span class="tag ro ok" title="אחוז עמלה">עמלה '+esc(c.commission_pct)+'%</span>':'')+'</div>'+
+             (c.phone?'<div class="cline" dir="ltr">'+esc(c.phone)+'</div>':'')+(c.email?'<div class="cline" dir="ltr">'+esc(c.email)+'</div>':'')+
+             (c.notes?'<div class="cnotes">'+esc(c.notes)+'</div>':'')+
+             '<div class="cacts">'+acts.join("")+'<button class="cact edit" data-ctedit="'+id+'">עריכה</button></div></div>';
+        }
       });
-      h+='</table>';
-    }
-    h+='</div><div class="hint">הרשימה פנימית לסטודיו ואינה מוצגת ללקוחות. אחוז העמלה הוא לתיעוד בלבד.</div><div class="err" id="ctErr" role="status"></div>';
+      h+='</div>';
+    });
+    h+='<datalist id="ctTrades">'+catNames.filter(function(k){return k!=="ללא סיווג";}).map(function(k){return '<option value="'+esc(k)+'">';}).join("")+'</datalist>';
+    h+='<div class="hint">הרשימה פנימית לסטודיו ואינה מוצגת ללקוחות. הקוביות מקובצות לפי השדה "סיווג / תחום"; שינוי הסיווג מעביר את איש הקשר לקבוצה אחרת. אחוז העמלה לתיעוד בלבד.</div><div class="err" id="ctErr" role="status"></div>';
     body.innerHTML=h;
-    $("ctAdd").onclick=async function(){ var r=await sb.from("contacts").insert({name:"ספק חדש"}).select().single(); if(r.error){ $("ctErr").textContent="לא נשמר — נסי שוב"; return; } S.contacts.push(r.data); drawContacts(); };
+    $("ctAdd").onclick=async function(){ var r=await sb.from("contacts").insert({name:"ספק חדש",trade:fc&&fc!=="ללא סיווג"?fc:""}).select().single(); if(r.error){ $("ctErr").textContent="לא נשמר — נסי שוב"; return; } S.contacts.push(r.data); S.ctEdit=r.data.id; S.ctQ=""; drawContacts(); };
+    var se=$("ctSearch"); se.oninput=function(){ S.ctQ=se.value; var pos=se.selectionStart; drawContacts(); var n=$("ctSearch"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} };
+    document.querySelectorAll('[data-ctcat]').forEach(function(el){ el.onclick=function(){ S.ctCat=el.dataset.ctcat; drawContacts(); }; });
+    document.querySelectorAll('[data-ctedit]').forEach(function(el){ el.onclick=function(){ S.ctEdit=el.dataset.ctedit; drawContacts(); }; });
+    document.querySelectorAll('[data-ctdone]').forEach(function(el){ el.onclick=function(){ setTimeout(function(){ S.ctEdit=null; drawContacts(); },150); }; });
     document.querySelectorAll('[data-ct]').forEach(function(el){ el.onchange=async function(){
       var f=el.dataset.ct, v=el.value, c=S.contacts.filter(function(x){return x.id===el.dataset.id;})[0]; if(!c) return;
       if(f==="commission_pct") v=(v===""?null:(+v||0)); c[f]=v; var u={}; u[f]=v;
-      var r=await sb.from("contacts").update(u).eq("id",c.id); $("ctErr").textContent=r.error?"השינוי לא נשמר — בדקי חיבור":"";
-      if(f==="phone"||f==="email"||f==="url") drawContacts(); }; });
+      var r=await sb.from("contacts").update(u).eq("id",c.id); var e=$("ctErr"); if(e) e.textContent=r.error?"השינוי לא נשמר — בדקי חיבור":""; }; });
     document.querySelectorAll('[data-delct]').forEach(function(el){ el.onclick=async function(){ if(!confirm("למחוק את איש הקשר?")) return;
-      var r=await sb.from("contacts").delete().eq("id",el.dataset.delct); if(r.error) return; S.contacts=S.contacts.filter(function(x){return x.id!==el.dataset.delct;}); drawContacts(); }; });
+      var r=await sb.from("contacts").delete().eq("id",el.dataset.delct); if(r.error) return; S.contacts=S.contacts.filter(function(x){return x.id!==el.dataset.delct;}); S.ctEdit=null; drawContacts(); }; });
   }
   var IK={quote:"הצעת מחיר",meeting:"תיאום פגישה",question:"שאלה / תשובה",other:"אחר"}, IC={quote:"wait",meeting:"ok",question:"no",other:"todo"};
   async function renderInbox(){
