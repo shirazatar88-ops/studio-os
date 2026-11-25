@@ -220,6 +220,18 @@
   .ritem.on{background:var(--soft)}
   .ritem.on b:after{content:" ✓";color:var(--ok)}
   .rhead{font-size:11px;font-weight:700;color:var(--muted);padding:10px 12px 4px;border-top:1px solid #f1ede6;margin-top:4px}
+  /* --- notifications bell --- */
+  .bell{position:relative;font-family:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 12px;cursor:pointer}
+  .bcount{position:absolute;top:-7px;left:-7px;min-width:19px;height:19px;border-radius:10px;background:var(--bad);color:#fff;font-size:11px;font-weight:700;line-height:19px;text-align:center;padding:0 5px}
+  .bcount[hidden]{display:none}
+  .rolemenu.notif{min-width:320px;max-height:70vh;overflow-y:auto}
+  .nhead{display:flex;justify-content:space-between;align-items:baseline;padding:8px 12px 4px}
+  .nhead span{font-size:11.5px;color:var(--muted)}
+  .nitem{border-right:3px solid transparent;border-radius:6px 10px 10px 6px}
+  .nitem.bad{border-right-color:var(--bad)}
+  .nitem.warn{border-right-color:#c9961a}
+  .nitem b{font-weight:600;font-size:13px}
+  .nfoot{border-top:1px solid #f1ede6;margin-top:6px;padding:10px 12px;font-size:11.5px;color:var(--muted)}
 /*STAGE_CSS_END*/
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -293,7 +305,7 @@
       var r=await sb.from("projects").update(toRow(list[i])).eq("id",list[i].id);
       if(r.error){ setStat("שגיאת שמירה — בדקי חיבור",true); pending[list[i].id]=list[i]; return; }
     }
-    setStat("נשמר ✓");
+    setStat("נשמר ✓"); paintBell();
   }
 
   /* ===== auth screens ===== */
@@ -388,7 +400,9 @@
       if(u.error||!u.data.user){ renderLogin(); return; }
       S.email=u.data.user.email||"";
       var a=await sb.rpc("is_admin"); if(a.error) throw a.error;
-      if(a.data===true){ S.role="admin"; await loadAdmin(); S.view="home"; }
+      if(a.data===true){ S.role="admin"; await loadAdmin(); S.view="home"; await loadSignals();
+        refreshTimer=setInterval(async function(){ if(document.hidden||S.role!=="admin") return; await loadSignals(); paintBell(); },120000);
+        setTimeout(dailyNotify,1500); }
       else {
         S.role="client"; await loadClient();
         if(S.projects.length===1){ S.activeId=S.projects[0].id; S.view="project"; } else S.view="home";
@@ -406,6 +420,79 @@
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) clientRefresh(); });
   async function logout(){ clearInterval(refreshTimer); clearInterval(chatTimer); await flush(); await sb.auth.signOut(); S.projects=[]; S.role=null; renderLogin(); }
 
+  /* ===== notifications ===== */
+  async function loadSignals(){
+    var waiting={}, newFiles={};
+    try{
+      var r=await sb.from("messages").select("project_id,sender_role,created_at").order("created_at",{ascending:false}).limit(300);
+      var seen={}; (r.data||[]).forEach(function(x){ if(seen[x.project_id]) return; seen[x.project_id]=1; if(x.sender_role==="client") waiting[x.project_id]=1; });
+      var f=await sb.from("client_files").select("project_id,uploader_role,created_at,deleted_at").gte("created_at",new Date(Date.now()-7*864e5).toISOString()).limit(500);
+      (f.data||[]).forEach(function(x){ if(x.uploader_role==="client"&&!x.deleted_at) newFiles[x.project_id]=(newFiles[x.project_id]||0)+1; });
+    }catch(e){}
+    S._sig={waiting:waiting,newFiles:newFiles};
+  }
+  // groups: do = לעשות, pay = לשלם / לגבות, decide = להחליט, answer = לענות / להביא תשובה
+  function notifList(){
+    var td=today(), soon=plusDays(3), out=[], sig=S._sig||{waiting:{},newFiles:{}};
+    S.projects.forEach(function(P){
+      function add(grp,lvl,txt,when){ out.push({grp:grp,lvl:lvl,txt:txt,when:when||"",pid:P.id,pname:P.name}); }
+      P.tasks.forEach(function(t){ if(t.done||!t.t) return;
+        var grp=t.wait?"answer":(taskCat(t)==="approvals"?"decide":"do");
+        if(t.due&&t.due<td) add(grp,"bad",t.t,"באיחור · "+fmtDate(t.due));
+        else if(t.due===td) add(grp,"bad",t.t,"היום");
+        else if(t.due&&t.due<=soon) add(grp,"warn",t.t,fmtDate(t.due));
+        else if(t.wait) add("answer","info",t.t,WAITL[t.wait]);
+        else if(!t.due&&t.pri==="hi") add(grp,"info",t.t,"עדיפות גבוהה · בלי תאריך"); });
+      if(sig.waiting[P.id]) add("answer","bad","הלקוח כתב בצ׳אט ומחכה לתשובה","");
+      if(sig.newFiles[P.id]) add("answer","info","הלקוח העלה "+sig.newFiles[P.id]+" מסמכים חדשים השבוע","");
+      P.payments.forEach(function(x){ if(x.paid||!x.due) return; var d=daysLeft(x.due);
+        if(d<=7) add("pay",d<=0?"bad":"warn","לגבות שכר טרחה: "+x.title+" · "+money(x.amount),d<0?"באיחור":(d===0?"היום":"בעוד "+d+" ימים")); });
+      var offers=P.budgetLines.filter(function(l){return l.status==="offer"&&(+l.amount||0)>0;});
+      if(offers.length) add("decide","info",offers.length+" הצעות מחיר ממתינות להחלטה: "+offers.slice(0,3).map(function(l){return l.nm.split(" · ")[0];}).join(", ")+(offers.length>3?"…":""),"");
+      (P.ffe||[]).forEach(function(x){ var k=ffeRisk(P,x); if(k) add(x.status==="ordered"?"answer":"decide",k.bad?"bad":"warn","רכש · "+(x.item||x.cat).slice(0,60),k.txt); });
+      var dl=daysLeft(P.shoppingDeadline);
+      if(dl!=null&&dl<=14) add("decide",dl<=3?"bad":"warn",dl<0?"יעד הרכישות עבר":"יעד הרכישות מתקרב","בעוד "+Math.max(dl,0)+" ימים");
+    });
+    var rank={bad:0,warn:1,info:2};
+    out.sort(function(a,b){ return rank[a.lvl]-rank[b.lvl]; });
+    return out;
+  }
+  var NG=[["do","לעשות"],["answer","לענות / להביא תשובה"],["pay","תשלומים"],["decide","להחליט"]];
+  function paintBell(full){
+    var c=$("bellCount"), m=$("bellMenu"); if(!c) return;
+    var list=notifList(), urgent=list.filter(function(x){return x.lvl!=="info";}).length;
+    c.hidden=!urgent; c.textContent=urgent;
+    try{ if(navigator.setAppBadge){ if(urgent) navigator.setAppBadge(urgent); else navigator.clearAppBadge(); } }catch(e){}
+    if(!m||(!full&&m.hidden)) return;
+    var h='<div class="nhead"><b>התראות</b><span>'+urgent+' דחופות · '+list.length+' בסך הכול</span></div>';
+    if(!list.length) h+='<div class="rhead" style="font-weight:400;border:none">אין כרגע שום דבר פתוח.</div>';
+    NG.forEach(function(g){
+      var L=list.filter(function(x){return x.grp===g[0];}); if(!L.length) return;
+      h+='<div class="rhead">'+g[1]+' · '+L.length+'</div>';
+      L.slice(0,12).forEach(function(x){
+        h+='<button class="ritem nitem '+x.lvl+'" role="menuitem" data-nopen="'+esc(x.pid)+'"><b>'+esc(x.txt)+'</b><span>'+esc(x.pname)+(x.when?' · '+esc(x.when):'')+'</span></button>'; });
+      if(L.length>12) h+='<div class="rhead" style="font-weight:400;border:none">ועוד '+(L.length-12)+'…</div>';
+    });
+    var np=("Notification" in window)?Notification.permission:"unsupported";
+    h+='<div class="nfoot">'+(np==="granted"?'התראת סיכום יומית בדפדפן פעילה במכשיר הזה.':(np==="denied"?'התראות הדפדפן חסומות במכשיר הזה (אפשר לשנות בהגדרות האתר בדפדפן).':(np==="default"?'<button class="btn ghost sm" id="nEnable">הפעלת התראת סיכום יומית במכשיר הזה</button>':'הדפדפן הזה לא תומך בהתראות.')))+'</div>';
+    m.innerHTML=h;
+    document.querySelectorAll('[data-nopen]').forEach(function(el){ el.onclick=function(){ S.activeId=el.dataset.nopen; S.view="project"; S.preview=false; renderApp(); window.scrollTo(0,0); }; });
+    var ne=$("nEnable"); if(ne) ne.onclick=async function(){ try{ await Notification.requestPermission(); }catch(e){} paintBell(true); dailyNotify(true); };
+  }
+  // one summary notification per day per device, shown when the app is opened
+  function dailyNotify(force){
+    try{
+      if(!("Notification" in window)||Notification.permission!=="granted"||S.role!=="admin") return;
+      var key="studioNotified", td=today(); if(!force&&localStorage.getItem(key)===td) return;
+      var list=notifList().filter(function(x){return x.lvl!=="info";}); if(!list.length) return;
+      localStorage.setItem(key,td);
+      var bodyTxt=list.slice(0,4).map(function(x){ return "• "+x.txt+(x.when?" ("+x.when+")":""); }).join("\n")+(list.length>4?"\nועוד "+(list.length-4)+"…":"");
+      var title="סטודיו שירז · "+list.length+" דברים דחופים להיום";
+      if(navigator.serviceWorker&&navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(function(reg){ reg.showNotification(title,{body:bodyTxt,icon:"icon-192.png",badge:"icon-192.png",dir:"rtl",lang:"he",tag:"studio-daily"}); }).catch(function(){ new Notification(title,{body:bodyTxt,dir:"rtl"}); });
+      else new Notification(title,{body:bodyTxt,dir:"rtl"});
+    }catch(e){}
+  }
+
   /* ===== shell ===== */
   function renderApp(){
     clearInterval(chatTimer);
@@ -421,6 +508,7 @@
     if(isAdmin) right+='<span id="saveStat" class="savestat"></span>';
     if(isAdmin){
       var pvOn=S.view!=="home"&&S.preview, cur=pvOn?active():null;
+      right+='<div class="rolewrap"><button class="bell" id="bellBtn" aria-haspopup="true" aria-expanded="false">התראות<span class="bcount" id="bellCount" hidden></span></button><div class="rolemenu notif" id="bellMenu" role="menu" hidden></div></div>';
       right+='<div class="rolewrap"><button class="role-pill rolebtn'+(pvOn?' pv':'')+'" id="roleBtn" aria-haspopup="true" aria-expanded="false">'+(pvOn?('תצוגת לקוח · '+esc(cur.client||cur.name)):'צג מנהלת')+' ▾</button>'+
         '<div class="rolemenu" id="roleMenu" role="menu" hidden>'+
         '<button role="menuitem" class="ritem'+(pvOn?'':' on')+'" data-roleview="admin"><b>צג מנהלת</b><span>המסך המלא שלי</span></button>'+
@@ -435,7 +523,9 @@
     var rb=$("roleBtn"), rm=$("roleMenu");
     if(rb&&rm){
       rb.onclick=function(ev){ ev.stopPropagation(); rm.hidden=!rm.hidden; rb.setAttribute("aria-expanded",rm.hidden?"false":"true"); };
-      document.onclick=function(){ var m=$("roleMenu"), b=$("roleBtn"); if(m&&!m.hidden){ m.hidden=true; if(b) b.setAttribute("aria-expanded","false"); } };
+      document.onclick=function(){ ["roleMenu","bellMenu"].forEach(function(id){ var m=$(id); if(m&&!m.hidden) m.hidden=true; }); var b=$("roleBtn"); if(b) b.setAttribute("aria-expanded","false"); var bb=$("bellBtn"); if(bb) bb.setAttribute("aria-expanded","false"); };
+      var bell=$("bellBtn"), bm=$("bellMenu");
+      if(bell&&bm){ bell.onclick=function(ev){ ev.stopPropagation(); rm.hidden=true; if(bm.hidden) paintBell(true); bm.hidden=!bm.hidden; bell.setAttribute("aria-expanded",bm.hidden?"false":"true"); }; bm.onclick=function(ev){ ev.stopPropagation(); }; paintBell(); }
       document.onkeydown=function(e){ if(e.key==="Escape"){ var m=$("roleMenu"); if(m) m.hidden=true; } };
       document.querySelectorAll('[data-roleview]').forEach(function(el){ el.onclick=async function(ev){ ev.stopPropagation();
         await flush();
