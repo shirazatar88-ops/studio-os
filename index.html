@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>סטודיו שירז עטר · מערכת ניהול</title>
+<meta name="theme-color" content="#9a7b5b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="סטודיו שירז">
+</head>
+<body>
+<div id="app" dir="rtl"></div>
+<style>
+  :root{color-scheme:light;
+    --bg:#f4f1ec; --card:#ffffff; --ink:#2b2824; --muted:#8a8274;
+    --line:#e6e0d6; --accent:#9a7b5b; --accent2:#b89b78; --soft:#f0ebe2;
+    --ok:#5b8c6a; --warn:#c9a24b; --bad:#c17a6f; --shadow:0 2px 14px rgba(60,50,40,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  #app{font-family:"Segoe UI","Assistant",Arial,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 18px 60px}
+  .btn{cursor:pointer;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;font-family:inherit;transition:.15s}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{background:#86694c}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.sm{padding:5px 11px;font-size:12.5px;border-radius:8px}
+
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#efe9df,#e4dccf)}
+  .loginbox{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:34px 32px;width:360px;text-align:center}
+  .brand{font-size:13px;letter-spacing:3px;color:var(--accent);font-weight:700;margin-bottom:4px}
+  .ptitle{font-size:21px;font-weight:700;margin-bottom:2px}
+  .psub{font-size:13px;color:var(--muted);margin-bottom:22px}
+  .fld{text-align:right;margin-bottom:13px}
+  .fld label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+  .fld input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;background:#fbfaf7}
+  .fld input:focus{outline:none;border-color:var(--accent)}
+  .err{color:var(--bad);font-size:13px;min-height:18px;margin-top:4px}
+
+  .topbar{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+  .topin{max-width:1080px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .proj{font-weight:700;font-size:16px}
+  .proj small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+  .role-pill{font-size:11.5px;background:var(--soft);color:var(--accent);padding:3px 10px;border-radius:20px;font-weight:700}
+  .trow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);overflow-x:auto}
+  .card h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .kpi{font-size:30px;font-weight:800;color:var(--accent)}
+  .kpi small{font-size:13px;color:var(--muted);font-weight:500}
+  .klabel{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+  .sectitle{font-size:15px;font-weight:700;margin:26px 0 12px;border-right:3px solid var(--accent);padding-right:10px;display:flex;justify-content:space-between;align-items:center}
+
+  /* catalog */
+  .cat-head{font-size:13px;font-weight:700;color:var(--accent);margin:22px 0 10px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+  .cat-head:before{content:"";flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--accent2)}
+  .pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;box-shadow:var(--shadow);cursor:pointer;transition:.15s;position:relative}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px rgba(60,50,40,.1)}
+  .pcard .pn{font-weight:700;font-size:15.5px;margin-bottom:2px}
+  .pcard .pc{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+  .pcard .pm{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .ctag{position:absolute;top:14px;left:14px;font-size:10.5px;background:var(--soft);color:var(--accent);padding:2px 8px;border-radius:20px;font-weight:700}
+
+  .stage{margin-bottom:14px}
+  .stage .row{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;margin-bottom:6px;gap:8px}
+  .stage .nm{font-weight:600}
+  .bar{height:9px;background:var(--soft);border-radius:20px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:20px;transition:width .4s}
+  .rng{width:120px}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .tag{font-size:11.5px;padding:3px 9px;border-radius:20px;font-weight:700;white-space:nowrap;cursor:pointer;user-select:none;display:inline-block}
+  .tag.ro{cursor:default}
+  .tag.ok,.tag.done{background:#e7f0e9;color:var(--ok)}
+  .tag.wait,.tag.prog{background:#faf2dc;color:var(--warn)}
+  .tag.no{background:#f7e6e2;color:var(--bad)}
+  .tag.todo{background:#eee9e0;color:var(--muted)}
+  .money{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .ipt{border:1px solid var(--line);border-radius:7px;padding:5px 7px;font-size:13px;font-family:inherit;background:#fbfaf7;width:100%}
+  .delx{color:var(--bad);cursor:pointer;font-weight:700;border:none;background:none;font-size:15px}
+  .addrow{margin-top:10px}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:40px}
+  .cred{display:flex;gap:16px;flex-wrap:wrap}
+  .cred div{flex:1;min-width:160px}
+  @media(max-width:620px){
+    .wrap{padding:16px 12px 48px}
+    .topin{padding:10px 12px}
+    .proj{font-size:14.5px}
+    .grid{grid-template-columns:1fr 1fr;gap:10px}
+    .card{padding:14px}
+    .kpi{font-size:24px}
+    th,td{padding:7px 5px;font-size:12.5px}
+    .ipt{font-size:12px;padding:4px 5px}
+    .rng{width:90px}
+    .sectitle{font-size:14px;margin:20px 0 10px}
+    .loginbox{width:92vw;max-width:360px}
+    .pcards{grid-template-columns:1fr}
+  }
+  @media(max-width:380px){ .grid{grid-template-columns:1fr} }
+  .authlinks{display:flex;justify-content:space-between;margin-top:14px;font-size:12.5px}
+  .authlinks a{color:var(--accent);cursor:pointer;text-decoration:underline}
+  .savestat{font-size:11.5px;color:var(--muted);min-width:52px;text-align:center}
+  .btn:disabled{opacity:.6;cursor:default}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var SB_URL="https://lugrtbedmrntcalgkikt.supabase.co";
+  var SB_KEY="sb_publishable_dPXXyx-vhCMWBaUNNOAauQ_eUwN_6gu";
+  var app=document.getElementById("app");
+  if(!window.supabase){ app.innerHTML='<div style="padding:40px;text-align:center">לא ניתן לטעון את המערכת. בדקי חיבור לאינטרנט ורענני.</div>'; return; }
+  var sb=window.supabase.createClient(SB_URL,SB_KEY);
+
+  var S={role:null, view:"home", projects:[], activeId:null, email:"", showNew:false};
+  var refreshTimer=null;
+
+  /* ===== helpers ===== */
+  function money(n){ return "₪"+(+n||0).toLocaleString("en-US"); }
+  function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function daysLeft(d){ if(!d) return null; var t=new Date(d+"T00:00:00"); var now=new Date(); now.setHours(0,0,0,0); return Math.round((t-now)/86400000); }
+  function overall(P){ var s=P.stages; if(!s.length) return 0; return Math.round(s.reduce(function(a,b){return a+(+b.pct||0);},0)/s.length); }
+  function $(id){ return document.getElementById(id); }
+  function byId(id){ return S.projects.filter(function(p){return p.id===id;})[0]; }
+  function active(){ return byId(S.activeId)||S.projects[0]; }
+
+  function fromRow(r){
+    var d=r.data||{};
+    return { id:r.id, name:r.name||"", client:r.client_name||"", category:r.category||"כללי",
+      clientEmail:r.client_email||"", designer:r.designer||"שירז עטר · אדריכלות ועיצוב פנים",
+      shoppingDeadline:r.shopping_deadline||"",
+      stages:d.stages||[], payments:d.payments||[], suppliers:d.suppliers||[], plans:d.plans||[],
+      budget:d.budget||{committed:0,offers:0,estimates:0} };
+  }
+  function toRow(P){
+    return { name:P.name||"פרויקט", client_name:P.client||"", category:P.category||"כללי",
+      client_email:(P.clientEmail&&P.clientEmail.trim())?P.clientEmail.trim().toLowerCase():null,
+      shopping_deadline:P.shoppingDeadline||null,
+      data:{stages:P.stages,payments:P.payments,suppliers:P.suppliers,plans:P.plans,budget:P.budget} };
+  }
+  function defaultStages(){
+    return [{nm:"שלב א' · תכנון ואפיון",pct:0},{nm:"שלב ב' · תכניות עבודה ואישורים",pct:0},
+            {nm:"שלב ג' · ביצוע ובנייה",pct:0},{nm:"שלב ד' · גמרים ומסירה",pct:0}];
+  }
+
+  /* ===== saving (admin) ===== */
+  var saveTimer=null, pending={};
+  function setStat(t,bad){ var e=$("saveStat"); if(e){ e.textContent=t; e.style.color=bad?"var(--bad)":"var(--muted)"; } }
+  function save(P){ pending[P.id]=P; setStat("שומר…"); clearTimeout(saveTimer); saveTimer=setTimeout(flush,600); }
+  async function flush(){
+    var ids=Object.keys(pending), list=ids.map(function(k){return pending[k];}); pending={};
+    for(var i=0;i<list.length;i++){
+      var r=await sb.from("projects").update(toRow(list[i])).eq("id",list[i].id);
+      if(r.error){ setStat("שגיאת שמירה — בדקי חיבור",true); pending[list[i].id]=list[i]; return; }
+    }
+    setStat("נשמר ✓");
+  }
+
+  /* ===== auth screens ===== */
+  function authShell(inner){
+    app.innerHTML='<div id="login"><div class="loginbox">'+
+      '<div class="brand">SHIRAZ ATAR · STUDIO</div>'+
+      '<div class="ptitle">מערכת ניהול הסטודיו</div>'+
+      '<div class="psub">ניהול פרויקטים · אדריכלות ועיצוב פנים</div>'+inner+'</div></div>';
+  }
+  function renderLogin(msg, ok){
+    authShell(
+      '<div class="fld"><label>אימייל</label><input id="em" type="email" autocomplete="username" dir="ltr"></div>'+
+      '<div class="fld"><label>סיסמה</label><input id="pw" type="password" autocomplete="current-password" dir="ltr"></div>'+
+      '<div class="err" id="authMsg" style="'+(ok?'color:var(--ok)':'')+'">'+(msg||"")+'</div>'+
+      '<button class="btn primary" style="width:100%;margin-top:6px" id="loginBtn">כניסה</button>'+
+      '<div class="authlinks"><a id="toSignup">כניסה ראשונה? יצירת סיסמה</a><a id="toForgot">שכחתי סיסמה</a></div>');
+    async function go(){
+      var em=$("em").value.trim(), pw=$("pw").value;
+      if(!em||!pw){ $("authMsg").textContent="יש למלא אימייל וסיסמה"; return; }
+      $("loginBtn").disabled=true;
+      var r=await sb.auth.signInWithPassword({email:em,password:pw});
+      if(r.error){ $("loginBtn").disabled=false;
+        $("authMsg").textContent = /confirm/i.test(r.error.message) ? "יש לאשר קודם את המייל שנשלח אלייך" : "אימייל או סיסמה שגויים"; return; }
+      enter();
+    }
+    $("loginBtn").onclick=go;
+    $("pw").addEventListener("keydown",function(e){ if(e.key==="Enter") go(); });
+    $("toSignup").onclick=function(){ renderSignup(); };
+    $("toForgot").onclick=function(){ renderForgot(); };
+  }
+  function renderSignup(msg){
+    authShell(
+      '<div class="hint" style="margin-bottom:12px;text-align:right">כניסה ראשונה: הזיני את האימייל שלך ובחרי סיסמה. יישלח אלייך מייל לאישור.</div>'+
+      '<div class="fld"><label>אימייל</label><input id="em" type="email" autocomplete="username" dir="ltr"></div>'+
+      '<div class="fld"><label>סיסמה חדשה (6 תווים לפחות)</label><input id="pw" type="password" autocomplete="new-password" dir="ltr"></div>'+
+      '<div class="err" id="authMsg">'+(msg||"")+'</div>'+
+      '<button class="btn primary" style="width:100%;margin-top:6px" id="suBtn">יצירת חשבון</button>'+
+      '<div class="authlinks"><a id="toLogin">חזרה לכניסה</a></div>');
+    $("toLogin").onclick=function(){ renderLogin(); };
+    $("suBtn").onclick=async function(){
+      var em=$("em").value.trim(), pw=$("pw").value;
+      if(!em||pw.length<6){ $("authMsg").textContent="אימייל תקין וסיסמה של 6 תווים לפחות"; return; }
+      $("suBtn").disabled=true;
+      var r=await sb.auth.signUp({email:em,password:pw,options:{emailRedirectTo:location.origin+location.pathname}});
+      if(r.error){ $("suBtn").disabled=false; $("authMsg").textContent="לא ניתן ליצור חשבון: "+r.error.message; return; }
+      if(r.data&&r.data.session){ enter(); return; }
+      renderLogin("נשלח מייל אישור. לחצי על הקישור שבו ואז היכנסי כאן.", true);
+    };
+  }
+  function renderForgot(){
+    authShell(
+      '<div class="fld"><label>אימייל</label><input id="em" type="email" dir="ltr"></div>'+
+      '<div class="err" id="authMsg"></div>'+
+      '<button class="btn primary" style="width:100%;margin-top:6px" id="fgBtn">שליחת קישור לאיפוס</button>'+
+      '<div class="authlinks"><a id="toLogin">חזרה לכניסה</a></div>');
+    $("toLogin").onclick=function(){ renderLogin(); };
+    $("fgBtn").onclick=async function(){
+      var em=$("em").value.trim(); if(!em){ $("authMsg").textContent="יש להזין אימייל"; return; }
+      await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});
+      renderLogin("אם האימייל רשום, נשלח אליו קישור לאיפוס סיסמה.", true);
+    };
+  }
+  function renderNewPass(){
+    authShell(
+      '<div class="fld"><label>סיסמה חדשה (6 תווים לפחות)</label><input id="pw" type="password" autocomplete="new-password" dir="ltr"></div>'+
+      '<div class="err" id="authMsg"></div>'+
+      '<button class="btn primary" style="width:100%;margin-top:6px" id="npBtn">שמירת סיסמה</button>');
+    $("npBtn").onclick=async function(){
+      var pw=$("pw").value; if(pw.length<6){ $("authMsg").textContent="6 תווים לפחות"; return; }
+      var r=await sb.auth.updateUser({password:pw});
+      if(r.error){ $("authMsg").textContent="לא ניתן לעדכן: "+r.error.message; return; }
+      enter();
+    };
+  }
+
+  /* ===== data loading ===== */
+  async function loadAdmin(){
+    var r=await sb.from("projects").select("*").order("created_at",{ascending:true});
+    if(r.error) throw r.error;
+    S.projects=r.data.map(fromRow);
+  }
+  async function loadClient(){
+    var r=await sb.rpc("client_projects");
+    if(r.error) throw r.error;
+    S.projects=(r.data||[]).map(function(x){ return fromRow({id:x.id,name:x.name,designer:x.designer,shopping_deadline:x.shopping_deadline,data:x.data}); });
+  }
+  async function enter(){
+    app.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted)">טוען…</div>';
+    clearInterval(refreshTimer);
+    try{
+      var u=await sb.auth.getUser();
+      if(u.error||!u.data.user){ renderLogin(); return; }
+      S.email=u.data.user.email||"";
+      var a=await sb.rpc("is_admin"); if(a.error) throw a.error;
+      if(a.data===true){ S.role="admin"; await loadAdmin(); S.view="home"; }
+      else {
+        S.role="client"; await loadClient();
+        if(S.projects.length===1){ S.activeId=S.projects[0].id; S.view="project"; } else S.view="home";
+        refreshTimer=setInterval(clientRefresh,30000);
+      }
+      renderApp();
+    }catch(e){ renderLogin("שגיאת התחברות לשרת. נסי שוב."); }
+  }
+  async function clientRefresh(){
+    if(S.role!=="client"||document.hidden) return;
+    try{ await loadClient(); var y=window.scrollY; renderApp(); window.scrollTo(0,y); }catch(e){}
+  }
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden) clientRefresh(); });
+  async function logout(){ clearInterval(refreshTimer); await flush(); await sb.auth.signOut(); S.projects=[]; S.role=null; renderLogin(); }
+
+  /* ===== shell ===== */
+  function renderApp(){
+    var isAdmin=S.role==="admin", title, right='';
+    if(S.view==="home"){
+      title='<div class="proj">מערכת ניהול הסטודיו<small>שירז עטר · אדריכלות ועיצוב פנים</small></div>';
+    } else {
+      var P=active();
+      title='<div class="proj">'+esc(P.name)+'<small>'+esc(isAdmin?P.category:P.designer)+'</small></div>';
+      if(isAdmin||S.projects.length>1) right+='<button class="btn ghost sm" id="homeBtn">→ כל הפרויקטים</button>';
+    }
+    if(isAdmin) right+='<span id="saveStat" class="savestat"></span>';
+    right+='<span class="role-pill">'+(isAdmin?"צג מנהלת":"צג לקוח")+'</span><button class="btn ghost sm" id="logoutBtn">יציאה</button>';
+    app.innerHTML='<div class="topbar"><div class="topin">'+title+'<div class="trow">'+right+'</div></div></div><div class="wrap" id="main"></div>';
+    $("logoutBtn").onclick=logout;
+    var hb=$("homeBtn"); if(hb) hb.onclick=function(){ S.view="home"; renderApp(); };
+    if(S.view==="home") renderHome();
+    else if(isAdmin) renderAdmin();
+    else renderClient();
+  }
+
+  /* ===== home catalog ===== */
+  function renderHome(){
+    var m=$("main"), all=S.projects, isAdmin=S.role==="admin", h='';
+    if(!isAdmin && !all.length){
+      m.innerHTML='<div class="card" style="text-align:center;padding:36px 20px"><h3 style="justify-content:center">עדיין לא שויך פרויקט לחשבון הזה</h3>'+
+        '<div class="hint">נכנסת עם <span dir="ltr">'+esc(S.email)+'</span>. אם זה האימייל הנכון, המעצבת צריכה לשייך אותו לפרויקט שלך.</div></div>';
+      return;
+    }
+    if(isAdmin){
+      var activeCount=all.filter(function(p){return overall(p)<100;}).length;
+      h+='<div class="grid">'+
+        '<div class="card"><h3>פרויקטים</h3><div class="kpi">'+all.length+'</div><div class="klabel">בתיק הסטודיו</div></div>'+
+        '<div class="card"><h3>פעילים</h3><div class="kpi">'+activeCount+'</div><div class="klabel">בתהליך</div></div>'+
+        '<div class="card"><h3>הושלמו</h3><div class="kpi">'+(all.length-activeCount)+'</div><div class="klabel">נמסרו</div></div></div>';
+      h+='<div class="sectitle">הפרויקטים שלי<button class="btn primary sm" id="newProj">+ פרויקט חדש</button></div>';
+      if(S.showNew){
+        h+='<div class="card" style="margin-bottom:14px"><div class="cred">'+
+          '<div><label class="klabel">שם הפרויקט</label><input class="ipt" id="npName" placeholder="למשל: דירת רוזן, רמת גן"></div>'+
+          '<div><label class="klabel">לקוח</label><input class="ipt" id="npClient"></div>'+
+          '<div><label class="klabel">קטגוריה</label><input class="ipt" id="npCat" placeholder="מגורים / מסחרי / שיפוץ"></div>'+
+          '</div><div class="addrow"><button class="btn primary sm" id="npSave">יצירה</button> <button class="btn ghost sm" id="npCancel">ביטול</button> <span class="err" id="npErr"></span></div></div>';
+      }
+    } else {
+      h+='<div class="sectitle">הפרויקטים שלך</div>';
+    }
+    var cats={}, order=[];
+    all.forEach(function(p){ var c=isAdmin?(p.category||"כללי"):""; if(!cats[c]){cats[c]=[];order.push(c);} cats[c].push(p); });
+    order.forEach(function(c){
+      if(c) h+='<div class="cat-head">'+esc(c)+'</div>';
+      h+='<div class="pcards">';
+      cats[c].forEach(function(p){
+        var pc=overall(p), next=p.stages.filter(function(s){return (+s.pct||0)<100;})[0];
+        h+='<div class="pcard" data-open="'+esc(p.id)+'"><span class="ctag">'+pc+'%</span>'+
+           '<div class="pn">'+esc(p.name)+'</div><div class="pc">'+(p.client?esc(p.client):'&nbsp;')+'</div>'+
+           '<div class="pm"><span>'+(next?esc(next.nm):'הושלם')+'</span><span>'+pc+'%</span></div>'+
+           '<div class="bar"><i style="width:'+pc+'%"></i></div></div>';
+      });
+      h+='</div>';
+    });
+    m.innerHTML=h;
+    document.querySelectorAll('[data-open]').forEach(function(el){
+      el.onclick=function(){ S.activeId=el.dataset.open; S.view="project"; renderApp(); window.scrollTo(0,0); };
+    });
+    if(isAdmin){
+      $("newProj").onclick=function(){ S.showNew=!S.showNew; renderHome(); };
+      if(S.showNew){
+        $("npCancel").onclick=function(){ S.showNew=false; renderHome(); };
+        $("npSave").onclick=async function(){
+          var name=$("npName").value.trim(); if(!name){ $("npErr").textContent="חסר שם פרויקט"; return; }
+          $("npSave").disabled=true;
+          var row={ name:name, client_name:$("npClient").value.trim(), category:$("npCat").value.trim()||"כללי",
+            data:{stages:defaultStages(),payments:[],suppliers:[],plans:[],budget:{committed:0,offers:0,estimates:0}} };
+          var r=await sb.from("projects").insert(row).select().single();
+          if(r.error){ $("npSave").disabled=false; $("npErr").textContent="לא נשמר — נסי שוב"; return; }
+          S.projects.push(fromRow(r.data)); S.activeId=r.data.id; S.showNew=false; S.view="project"; renderApp();
+        };
+      }
+    }
+  }
+
+  /* ===== shared tables ===== */
+  function stagesHtml(P,editable){
+    return P.stages.map(function(s,i){
+      return '<div class="stage"><div class="row"><span class="nm">'+esc(s.nm)+'</span>'+
+        (editable? '<span style="display:flex;align-items:center;gap:8px"><input class="rng" type="range" min="0" max="100" step="5" value="'+(+s.pct||0)+'" data-stage="'+i+'"><span style="width:38px;text-align:left">'+(+s.pct||0)+'%</span></span>'
+                 : '<span>'+(+s.pct||0)+'%</span>')+
+        '</div><div class="bar"><i style="width:'+(+s.pct||0)+'%"></i></div></div>';
+    }).join("") || '<div class="hint">אין שלבים עדיין.</div>';
+  }
+  function paymentsTable(P,editable){
+    var r='<table><tr><th>אבן דרך</th><th>סכום</th><th>סטטוס</th>'+(editable?'<th></th>':'')+'</tr>';
+    P.payments.forEach(function(p,i){
+      r+='<tr><td>'+(editable?'<input class="ipt" data-payf="title" data-i="'+i+'" value="'+esc(p.title)+'">':esc(p.title))+'</td>'+
+         '<td>'+(editable?'<input class="ipt" style="width:100px" type="number" data-payf="amount" data-i="'+i+'" value="'+(+p.amount||0)+'">':'<span class="money">'+money(p.amount)+'</span>')+'</td>'+
+         '<td><span class="tag '+(p.paid?'ok':'no')+(editable?'':' ro')+'"'+(editable?' data-pay="'+i+'"':'')+'>'+(p.paid?'שולם':'ממתין')+'</span></td>'+
+         (editable?'<td><button class="delx" data-delpay="'+i+'">×</button></td>':'')+'</tr>';
+    });
+    if(!editable){
+      var paid=P.payments.filter(function(p){return p.paid;}).reduce(function(a,b){return a+(+b.amount||0);},0);
+      var tot=P.payments.reduce(function(a,b){return a+(+b.amount||0);},0);
+      r+='<tr style="font-weight:800"><td>שולם עד כה</td><td class="money">'+money(paid)+'</td><td></td></tr>'+
+         '<tr style="font-weight:700"><td>יתרה</td><td class="money">'+money(tot-paid)+'</td><td></td></tr>';
+    }
+    r+='</table>';
+    if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addPay">+ הוסף אבן דרך</button></div>';
+    return r;
+  }
+  function suppliersTable(P,editable){
+    var r='<table><tr><th>ספק</th><th>תחום</th><th>סטטוס</th>'+(editable?'<th>הערה (פנימי)</th><th></th>':'')+'</tr>';
+    P.suppliers.forEach(function(s,i){
+      var lbl={ok:"סגור",wait:"בתהליך",no:"לא סגור"}[s.status]||"לא סגור";
+      if(editable){
+        r+='<tr><td><input class="ipt" data-sfield="nm" data-i="'+i+'" value="'+esc(s.nm)+'"></td>'+
+           '<td><input class="ipt" data-sfield="trade" data-i="'+i+'" value="'+esc(s.trade)+'"></td>'+
+           '<td><span class="tag '+esc(s.status)+'" data-sup="'+i+'">'+lbl+'</span></td>'+
+           '<td><input class="ipt" data-sfield="note" data-i="'+i+'" value="'+esc(s.note)+'"></td>'+
+           '<td><button class="delx" data-delsup="'+i+'">×</button></td></tr>';
+      } else {
+        r+='<tr><td>'+esc(s.nm)+'</td><td>'+esc(s.trade)+'</td><td><span class="tag ro '+esc(s.status)+'">'+lbl+'</span></td></tr>';
+      }
+    });
+    r+='</table>';
+    if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addSup">+ הוסף ספק</button></div>';
+    return r;
+  }
+  function plansTable(P,editable){
+    var r='<table><tr><th>תכנית</th><th>סטטוס</th>'+(editable?'<th></th>':'')+'</tr>';
+    P.plans.forEach(function(p,i){
+      var lbl={done:"הושלם",prog:"בתהליך",todo:"לביצוע"}[p.status]||"לביצוע";
+      if(editable){
+        r+='<tr><td><input class="ipt" data-pfield="nm" data-i="'+i+'" value="'+esc(p.nm)+'"></td>'+
+           '<td><span class="tag '+esc(p.status)+'" data-plan="'+i+'">'+lbl+'</span></td>'+
+           '<td><button class="delx" data-delplan="'+i+'">×</button></td></tr>';
+      } else {
+        r+='<tr><td>'+esc(p.nm)+'</td><td><span class="tag ro '+esc(p.status)+'">'+lbl+'</span></td></tr>';
+      }
+    });
+    r+='</table>';
+    if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addPlan">+ הוסף תכנית</button></div>';
+    return r;
+  }
+
+  /* ===== admin project ===== */
+  function renderAdmin(){
+    var P=active(), m=$("main");
+    var dl=daysLeft(P.shoppingDeadline);
+    var paid=P.payments.filter(function(p){return p.paid;}).reduce(function(a,b){return a+(+b.amount||0);},0);
+    var totalFee=P.payments.reduce(function(a,b){return a+(+b.amount||0);},0);
+    var closed=P.suppliers.filter(function(s){return s.status==="ok";}).length;
+    var grand=(+P.budget.committed||0)+(+P.budget.offers||0)+(+P.budget.estimates||0);
+    var h='<div class="grid">';
+    h+='<div class="card"><h3>התקדמות כללית</h3><div class="kpi">'+overall(P)+'<small>%</small></div><div class="bar" style="margin-top:10px"><i style="width:'+overall(P)+'%"></i></div></div>';
+    h+='<div class="card"><h3>ימי רכישות שנותרו</h3><div class="kpi">'+(dl==null?"—":dl)+' <small>ימים</small></div><div class="klabel">יעד: <input class="ipt" style="width:160px;display:inline-block" type="date" id="dlDate" value="'+esc(P.shoppingDeadline)+'"></div></div>';
+    h+='<div class="card"><h3>ספקים שנסגרו</h3><div class="kpi">'+closed+' <small>/ '+P.suppliers.length+'</small></div><div class="klabel">'+(P.suppliers.length-closed)+' עדיין פתוחים</div></div>';
+    h+='<div class="card"><h3>שכר הטרחה שלי</h3><div class="kpi">'+money(paid)+'</div><div class="klabel">מתוך '+money(totalFee)+' · יתרה '+money(totalFee-paid)+'</div></div></div>';
+
+    h+='<div class="sectitle">פרטי הפרויקט</div><div class="card"><div class="cred">'+
+       '<div><label class="klabel">שם הפרויקט</label><input class="ipt" id="pName" value="'+esc(P.name)+'"></div>'+
+       '<div><label class="klabel">לקוח</label><input class="ipt" id="pClient" value="'+esc(P.client)+'"></div>'+
+       '<div><label class="klabel">קטגוריה</label><input class="ipt" id="pCat" value="'+esc(P.category)+'"></div></div></div>';
+
+    h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card"><table>'+
+       '<tr><th>קטגוריה</th><th>סכום (כולל מע״מ)</th></tr>'+
+       '<tr><td>מחויב (חוזים/תשלומים)</td><td><input class="ipt" style="width:140px" type="number" id="bC" value="'+(+P.budget.committed||0)+'"></td></tr>'+
+       '<tr><td>בהצעות מחיר</td><td><input class="ipt" style="width:140px" type="number" id="bO" value="'+(+P.budget.offers||0)+'"></td></tr>'+
+       '<tr><td>הערכות (עיצוב רך/להשלמה)</td><td><input class="ipt" style="width:140px" type="number" id="bE" value="'+(+P.budget.estimates||0)+'"></td></tr>'+
+       '<tr style="font-weight:800"><td>סה״כ צפי פרויקט</td><td class="money">'+money(grand)+'</td></tr></table></div>';
+
+    h+='<div class="sectitle">שלבי התקדמות</div><div class="card">'+stagesHtml(P,true)+'</div>';
+    h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,true)+'</div>';
+    h+='<div class="sectitle">ספקים · סטטוס סגירה</div><div class="card">'+suppliersTable(P,true)+'<div class="hint">לחיצה על התגית: סגור ← בתהליך ← לא סגור. ההערות פנימיות ולא מוצגות ללקוח.</div></div>';
+    h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,true)+'<div class="hint">לחיצה על התגית: הושלם ← בתהליך ← לביצוע.</div></div>';
+
+    h+='<div class="sectitle">גישת הלקוח לפרויקט זה</div><div class="card"><div class="cred">'+
+       '<div><label class="klabel">האימייל של הלקוח</label><input class="ipt" id="cEmail" type="email" dir="ltr" value="'+esc(P.clientEmail)+'" placeholder="client@example.com"></div></div>'+
+       '<div class="hint">הלקוח נכנס לכתובת המערכת, לוחץ "כניסה ראשונה", ויוצר סיסמה עם האימייל הזה בדיוק. הוא יראה רק את הפרויקט הזה: שלבים, תשלומים, ימי רכישות, ספקים ותוכניות. התקציב הפנימי וההערות לא מוצגים לו.</div></div>';
+
+    h+='<div class="sectitle" style="color:var(--bad);border-color:var(--bad)">אזור מסוכן</div><div class="card"><button class="btn ghost sm" id="delProj" style="color:var(--bad);border-color:#e3c3bd">מחק את הפרויקט הזה</button></div>';
+    m.innerHTML=h;
+    wireAdmin(P);
+  }
+  function wireAdmin(P){
+    function re(){ save(P); renderAdmin(); }
+    $("pName").onchange=function(e){ P.name=e.target.value; save(P); };
+    $("pClient").onchange=function(e){ P.client=e.target.value; save(P); };
+    $("pCat").onchange=function(e){ P.category=e.target.value||"כללי"; save(P); };
+    $("cEmail").onchange=function(e){ P.clientEmail=e.target.value.trim(); save(P); };
+    $("dlDate").onchange=function(e){ P.shoppingDeadline=e.target.value; re(); };
+    $("bC").onchange=function(e){ P.budget.committed=+e.target.value||0; re(); };
+    $("bO").onchange=function(e){ P.budget.offers=+e.target.value||0; re(); };
+    $("bE").onchange=function(e){ P.budget.estimates=+e.target.value||0; re(); };
+    $("delProj").onclick=async function(){
+      if(!confirm('למחוק את הפרויקט "'+P.name+'"? פעולה בלתי הפיכה.')) return;
+      delete pending[P.id];
+      var r=await sb.from("projects").delete().eq("id",P.id);
+      if(r.error){ setStat("המחיקה נכשלה",true); return; }
+      S.projects=S.projects.filter(function(x){return x.id!==P.id;}); S.view="home"; renderApp();
+    };
+    document.querySelectorAll('[data-stage]').forEach(function(el){
+      el.oninput=function(){ P.stages[+el.dataset.stage].pct=+el.value; el.nextElementSibling.textContent=el.value+'%'; };
+      el.onchange=re;
+    });
+    var ap=$("addPay"); if(ap) ap.onclick=function(){ P.payments.push({title:"אבן דרך חדשה",amount:0,paid:false}); re(); };
+    document.querySelectorAll('[data-pay]').forEach(function(el){ el.onclick=function(){ var i=+el.dataset.pay; P.payments[i].paid=!P.payments[i].paid; re(); }; });
+    document.querySelectorAll('[data-delpay]').forEach(function(el){ el.onclick=function(){ P.payments.splice(+el.dataset.delpay,1); re(); }; });
+    document.querySelectorAll('[data-payf]').forEach(function(el){ el.onchange=function(){ P.payments[+el.dataset.i][el.dataset.payf]= el.dataset.payf==="amount"?(+el.value||0):el.value; re(); }; });
+    var as=$("addSup"); if(as) as.onclick=function(){ P.suppliers.push({nm:"ספק חדש",trade:"",status:"no",note:""}); re(); };
+    document.querySelectorAll('[data-sup]').forEach(function(el){ el.onclick=function(){ var i=+el.dataset.sup; P.suppliers[i].status=({ok:"wait",wait:"no",no:"ok"})[P.suppliers[i].status]||"no"; re(); }; });
+    document.querySelectorAll('[data-delsup]').forEach(function(el){ el.onclick=function(){ P.suppliers.splice(+el.dataset.delsup,1); re(); }; });
+    document.querySelectorAll('[data-sfield]').forEach(function(el){ el.onchange=function(){ P.suppliers[+el.dataset.i][el.dataset.sfield]=el.value; save(P); }; });
+    var apl=$("addPlan"); if(apl) apl.onclick=function(){ P.plans.push({nm:"תכנית חדשה",status:"todo"}); re(); };
+    document.querySelectorAll('[data-plan]').forEach(function(el){ el.onclick=function(){ var i=+el.dataset.plan; P.plans[i].status=({done:"prog",prog:"todo",todo:"done"})[P.plans[i].status]||"todo"; re(); }; });
+    document.querySelectorAll('[data-delplan]').forEach(function(el){ el.onclick=function(){ P.plans.splice(+el.dataset.delplan,1); re(); }; });
+    document.querySelectorAll('[data-pfield]').forEach(function(el){ el.onchange=function(){ P.plans[+el.dataset.i][el.dataset.pfield]=el.value; save(P); }; });
+  }
+
+  /* ===== client ===== */
+  function renderClient(){
+    var P=active(), m=$("main");
+    var dl=daysLeft(P.shoppingDeadline);
+    var closed=P.suppliers.filter(function(s){return s.status==="ok";}).length;
+    var totalFee=P.payments.reduce(function(a,b){return a+(+b.amount||0);},0);
+    var next=P.stages.filter(function(s){return (+s.pct||0)<100;})[0];
+    var h='<div class="grid">';
+    h+='<div class="card"><h3>התקדמות הפרויקט</h3><div class="kpi">'+overall(P)+'<small>%</small></div><div class="bar" style="margin-top:10px"><i style="width:'+overall(P)+'%"></i></div><div class="klabel">'+(next?'שלב נוכחי: '+esc(next.nm):'כל השלבים הושלמו')+'</div></div>';
+    if(dl!=null) h+='<div class="card"><h3>ימי רכישות שנותרו</h3><div class="kpi">'+dl+' <small>ימים</small></div><div class="klabel">לסיום שלב הרכש</div></div>';
+    h+='<div class="card"><h3>אנשי מקצוע סגורים</h3><div class="kpi">'+closed+' <small>/ '+P.suppliers.length+'</small></div><div class="klabel">ספקים שכבר נסגרו</div></div></div>';
+    h+='<div class="sectitle">שלבי הפרויקט</div><div class="card">'+stagesHtml(P,false)+'</div>';
+    if(totalFee>0) h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,false)+'</div>';
+    if(P.suppliers.length) h+='<div class="sectitle">ספקים · סגורים ולא סגורים</div><div class="card">'+suppliersTable(P,false)+'</div>';
+    if(P.plans.length) h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,false)+'</div>';
+    h+='<div class="foot">מערכת ניהול הפרויקט · '+esc(P.designer)+'</div>';
+    m.innerHTML=h;
+  }
+
+  /* ===== boot ===== */
+  var recovering=false;
+  sb.auth.onAuthStateChange(function(ev){ if(ev==="PASSWORD_RECOVERY"){ recovering=true; renderNewPass(); } });
+  sb.auth.getSession().then(function(r){
+    if(recovering) return;
+    if(r.data&&r.data.session) enter(); else renderLogin();
+  });
+  window.addEventListener("beforeunload",function(){ if(Object.keys(pending).length) flush(); });
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+  }
+})();
+</script>
+</body>
+</html>
