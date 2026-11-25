@@ -232,6 +232,62 @@
   .nitem.warn{border-right-color:#c9961a}
   .nitem b{font-weight:600;font-size:13px}
   .nfoot{border-top:1px solid #f1ede6;margin-top:6px;padding:10px 12px;font-size:11.5px;color:var(--muted)}
+  /* --- mobile layout --- */
+  @media(max-width:720px){
+    #app{padding-bottom:env(safe-area-inset-bottom)}
+    .wrap{padding:16px 12px 70px}
+    .topin{padding:10px 12px;gap:8px}
+    .proj{flex:1 1 100%;font-size:16px}
+    .trow{width:100%;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:2px 0 4px;scrollbar-width:none}
+    .trow::-webkit-scrollbar,.tabs::-webkit-scrollbar,.chips::-webkit-scrollbar,.secnav::-webkit-scrollbar{display:none}
+    .trow>*{flex:0 0 auto}
+    .rolewrap{position:static}
+    .rolemenu,.rolemenu.notif{position:fixed;top:auto;bottom:0;left:0;right:0;min-width:0;max-width:none;max-height:75vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:10px 10px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(40,30,20,.28);z-index:80}
+    .ritem{padding:12px}
+    .tabs{flex-wrap:nowrap;overflow-x:auto;margin-bottom:16px;scrollbar-width:none}
+    .tab{white-space:nowrap;flex:0 0 auto;padding:10px 12px;font-size:14px}
+    .chips{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none}
+    .chip{white-space:nowrap;flex:0 0 auto}
+    .filterbar{align-items:stretch}
+    .filterbar .ipt{width:100%!important;max-width:none!important;min-width:0!important;flex:1 1 100%!important}
+    .secnav{margin:-6px -12px 14px;padding:8px 12px;scrollbar-width:none}
+    .grid{grid-template-columns:1fr 1fr;gap:10px}
+    .card{padding:15px;border-radius:14px}
+    .kpi{font-size:22px}
+    .sectitle{margin:28px 0 10px;flex-wrap:wrap;gap:6px}
+    .cred{flex-direction:column;gap:10px}
+    .cred>div{min-width:0!important;flex:1 1 auto!important;width:100%}
+    .ipt,select.ipt,textarea.ipt,.fld input{font-size:16px}
+    .btn{min-height:40px}
+    .btn.sm{padding:8px 13px;font-size:13.5px}
+    .switch{padding:7px 10px 7px 12px}
+    .stage .row{flex-wrap:wrap}
+    .rng{width:150px}
+    .chk{flex-wrap:wrap;gap:8px;padding:10px 2px}
+    .chk span:nth-child(2){flex:1 1 60%}
+    .chatform{flex-direction:column;align-items:stretch}
+    .msg{max-width:92%}
+    .pcards,.ccards,.cform{grid-template-columns:1fr}
+    .visrow{align-items:center}
+    .loginbox{width:92vw;max-width:380px;padding:28px 20px}
+    .alert{font-size:13px;padding:10px 12px}
+    /* tables become one card per row */
+    table.stack{display:block;min-width:0!important}
+    table.stack tbody{display:block}
+    table.stack tr{display:block;border:1px solid #ebe6dd;border-radius:12px;padding:8px 12px;margin-bottom:10px;background:#fff}
+    table.stack tr.hrow{display:none}
+    table.stack tr.approved{background:#f5faf6}
+    table.stack td{display:flex;align-items:center;justify-content:space-between;gap:12px;border:none;padding:6px 0;text-align:left;background:none!important;min-height:30px}
+    table.stack td:before{content:attr(data-label);flex:0 0 36%;max-width:36%;font-size:12px;color:var(--muted);text-align:right;line-height:1.3}
+    table.stack td[data-label=""]:before{display:none}
+    table.stack td[data-label=""]{justify-content:flex-start}
+    table.stack td:empty{display:none}
+    table.stack td .ipt{flex:1 1 auto;width:auto!important;min-width:0!important;max-width:64%}
+    table.stack td>label{justify-content:flex-end}
+    table.stack td .hint{margin:0}
+    .card{overflow-x:visible}
+  }
+  @media(max-width:380px){ .grid{grid-template-columns:1fr} }
 /*STAGE_CSS_END*/
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1371,6 +1427,23 @@
     document.querySelectorAll('[data-ibtask]').forEach(function(el){ el.onclick=function(){ ibAct(el,"ibtask"); }; });
     document.querySelectorAll('[data-ibquote]').forEach(function(el){ el.onclick=function(){ ibAct(el,"ibquote"); }; });
     document.querySelectorAll('[data-ibdel]').forEach(function(el){ el.onclick=async function(){ if(!confirm("להסיר את הפריט מהרשימה? המייל עצמו לא נמחק.")) return; await sb.from("inbox_items").delete().eq("id",+el.dataset.ibdel); renderInbox(); }; });
+  }
+
+  /* ===== mobile: turn wide tables into stacked cards ===== */
+  function labelTables(){
+    var tables=app.querySelectorAll("table:not([data-lbl])");
+    for(var i=0;i<tables.length;i++){
+      var t=tables[i]; t.setAttribute("data-lbl","1");
+      var rows=t.rows; if(!rows||!rows.length) continue;
+      var hs=rows[0].querySelectorAll("th"); if(hs.length<3) continue;   // small 2-column tables stay as they are
+      var labels=[].map.call(hs,function(h){ return h.textContent.trim(); });
+      rows[0].classList.add("hrow"); t.classList.add("stack");
+      for(var r=1;r<rows.length;r++){ var cs=rows[r].cells; for(var c=0;c<cs.length;c++){ if(!cs[c].hasAttribute("data-label")) cs[c].setAttribute("data-label",labels[c]||""); } }
+    }
+  }
+  if(window.MutationObserver){
+    var lblQueued=false;
+    new MutationObserver(function(){ if(lblQueued) return; lblQueued=true; (window.requestAnimationFrame||setTimeout)(function(){ lblQueued=false; labelTables(); }); }).observe(app,{childList:true,subtree:true});
   }
 
   /* ===== boot ===== */
