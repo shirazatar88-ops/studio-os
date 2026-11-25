@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>סטודיו שירז עטר · מערכת ניהול</title>
-<meta name="theme-color" content="#9a7b5b">
+<meta name="theme-color" content="#7d6040">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,16 +16,16 @@
 <div id="app" dir="rtl"></div>
 <style>
   :root{color-scheme:light;
-    --bg:#f4f1ec; --card:#ffffff; --ink:#2b2824; --muted:#8a8274;
-    --line:#e6e0d6; --accent:#9a7b5b; --accent2:#b89b78; --soft:#f0ebe2;
-    --ok:#5b8c6a; --warn:#c9a24b; --bad:#c17a6f; --shadow:0 2px 14px rgba(60,50,40,.06);
+    --bg:#f4f1ec; --card:#ffffff; --ink:#2b2824; --muted:#6b6457;
+    --line:#e6e0d6; --accent:#7d6040; --accent2:#b0906a; --soft:#f0ebe2;
+    --ok:#356b47; --warn:#7d5f0e; --bad:#a23f31; --shadow:0 2px 14px rgba(60,50,40,.06);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   #app{font-family:"Segoe UI","Assistant",Arial,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;line-height:1.5}
   .wrap{max-width:1080px;margin:0 auto;padding:22px 18px 60px}
   .btn{cursor:pointer;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;font-family:inherit;transition:.15s}
   .btn.primary{background:var(--accent);color:#fff}
-  .btn.primary:hover{background:#86694c}
+  .btn.primary:hover{background:#6a5035}
   .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
   .btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
   .btn.sm{padding:5px 11px;font-size:12.5px;border-radius:8px}
@@ -112,6 +112,41 @@
   .authlinks a{color:var(--accent);cursor:pointer;text-decoration:underline}
   .savestat{font-size:11.5px;color:var(--muted);min-width:52px;text-align:center}
   .btn:disabled{opacity:.6;cursor:default}
+  .fchip{display:inline-flex;align-items:center;gap:2px;background:var(--soft);border-radius:8px;padding:2px 8px;margin:2px 0 2px 6px;font-size:12px}
+  .fchip a,.plink{color:var(--accent);cursor:pointer;text-decoration:underline}
+  .upl{display:inline-block;cursor:pointer}
+  textarea.ipt{resize:vertical;line-height:1.5}
+  .jentry{border-top:1px solid var(--line);padding:10px 2px;font-size:13.5px}
+  .jhead{display:flex;justify-content:space-between;align-items:center;color:var(--accent);margin-bottom:3px}
+  input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex:0 0 auto}
+  .chatlist{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 10px}
+  .msg{max-width:82%;padding:8px 12px;border-radius:14px;font-size:13.5px;line-height:1.5;word-break:break-word}
+  .msg.mine{align-self:flex-start;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+  .msg.theirs{align-self:flex-end;background:var(--soft);border-bottom-left-radius:4px}
+  .mmeta{font-size:10.5px;opacity:.85;margin-bottom:2px}
+  .chatform{display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--line);padding-top:10px}
+  .chatform textarea{flex:1}
+  .newmsg{margin-top:10px;font-size:11.5px;font-weight:700;color:var(--bad);background:#f7e6e2;border-radius:8px;padding:4px 8px;text-align:center}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:10px}
+  .tab{font-family:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:8px 16px;cursor:pointer}
+  .tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .switch{font-family:inherit;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:5px 10px 5px 12px;cursor:pointer}
+  .switch .knob{width:30px;height:16px;border-radius:10px;background:#cfc7b8;position:relative;transition:.15s;flex:0 0 auto}
+  .switch .knob:after{content:"";position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:.15s}
+  .switch.on .knob{background:var(--ok)}
+  .switch.on .knob:after{right:16px}
+  .visrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .visrow:last-of-type{border-bottom:none}
+  .pvbanner{background:#fff4d6;border:1px solid #e6cf8f;color:#5c4708;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px}
+  .chk{display:flex;align-items:center;gap:10px;padding:8px 2px;border-top:1px solid var(--line);font-size:13.5px;cursor:pointer}
+  .chk span:nth-child(2){flex:1}
+  .chk.done span:nth-child(2){text-decoration:line-through;color:var(--muted)}
+  table.wide{min-width:900px}
+  select.ipt{min-height:30px}
+  .tag.ok,.tag.done{color:var(--ok)} .tag.wait,.tag.prog{color:var(--warn)} .tag.no{color:var(--bad)} .tag.todo{color:var(--muted)}
+  .delx{min-width:28px;min-height:28px}
+  :focus-visible{outline:3px solid #1a5fb4;outline-offset:2px;border-radius:6px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -122,7 +157,8 @@
   if(!window.supabase){ app.innerHTML='<div style="padding:40px;text-align:center">לא ניתן לטעון את המערכת. בדקי חיבור לאינטרנט ורענני.</div>'; return; }
   var sb=window.supabase.createClient(SB_URL,SB_KEY);
 
-  var S={role:null, view:"home", projects:[], activeId:null, email:"", showNew:false};
+  var S={role:null, view:"home", projects:[], activeId:null, email:"", showNew:false, chatDraft:{}, tab:"today", preview:false, contacts:[]};
+  var chatTimer=null;
   var refreshTimer=null;
 
   /* ===== helpers ===== */
@@ -136,18 +172,36 @@
 
   function fromRow(r){
     var d=r.data||{};
+    var lines=d.budgetLines;
+    if(!lines){ // one-time migration from the old three totals
+      lines=[]; var b=d.budget||{};
+      if(+b.committed) lines.push({nm:"מחויב · יתרת פתיחה",amount:+b.committed,paid:0,status:"commit"});
+      if(+b.offers)    lines.push({nm:"בהצעות מחיר · יתרת פתיחה",amount:+b.offers,paid:0,status:"offer"});
+      if(+b.estimates) lines.push({nm:"הערכות · יתרת פתיחה",amount:+b.estimates,paid:0,status:"est"});
+    }
     return { id:r.id, name:r.name||"", client:r.client_name||"", category:r.category||"כללי",
       clientEmail:r.client_email||"", designer:r.designer||"שירז עטר · אדריכלות ועיצוב פנים",
       shoppingDeadline:r.shopping_deadline||"",
       stages:d.stages||[], payments:d.payments||[], suppliers:d.suppliers||[], plans:d.plans||[],
-      budget:d.budget||{committed:0,offers:0,estimates:0} };
+      budgetLines:lines, tasks:d.tasks||[], journal:d.journal||[], docs:d.docs||[], vis:d.vis||{} };
   }
   function toRow(P){
     return { name:P.name||"פרויקט", client_name:P.client||"", category:P.category||"כללי",
       client_email:(P.clientEmail&&P.clientEmail.trim())?P.clientEmail.trim().toLowerCase():null,
       shopping_deadline:P.shoppingDeadline||null,
-      data:{stages:P.stages,payments:P.payments,suppliers:P.suppliers,plans:P.plans,budget:P.budget} };
+      data:{stages:P.stages,payments:P.payments,suppliers:P.suppliers,plans:P.plans,
+            budgetLines:P.budgetLines,tasks:P.tasks,journal:P.journal,docs:P.docs,vis:P.vis||{}} };
   }
+  function today(){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+  function fmtDate(s){ if(!s) return ""; var p=String(s).slice(0,10).split("-"); return p.length===3? p[2]+"/"+p[1]+"/"+p[0] : s; }
+  function allFiles(P){ var a=P.docs.map(function(f){return f.path;}); P.plans.forEach(function(p){ (p.files||[]).forEach(function(f){ a.push(f.path); }); }); return a; }
+  async function openFile(path){
+    var w=window.open("about:blank","_blank");
+    var r=await sb.storage.from("plans").createSignedUrl(path,300);
+    if(r.error||!r.data){ if(w) w.close(); setStat("לא ניתן לפתוח את הקובץ",true); return; }
+    if(w) w.location=r.data.signedUrl; else location.href=r.data.signedUrl;
+  }
+  function wireFiles(){ document.querySelectorAll('[data-file]').forEach(function(el){ el.onclick=function(){ openFile(el.dataset.file); }; }); }
   function defaultStages(){
     return [{nm:"שלב א' · תכנון ואפיון",pct:0},{nm:"שלב ב' · תכניות עבודה ואישורים",pct:0},
             {nm:"שלב ג' · ביצוע ובנייה",pct:0},{nm:"שלב ד' · גמרים ומסירה",pct:0}];
@@ -269,13 +323,16 @@
   }
   async function clientRefresh(){
     if(S.role!=="client"||document.hidden) return;
+    var ae=document.activeElement, ct=$("chatText"), cn=$("cfNote"), ca=$("cfAmount"), cf=$("cfFile");
+    if((ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))||(ct&&ct.value)||(cn&&cn.value)||(ca&&ca.value)||(cf&&cf.files&&cf.files.length)) return; // don't interrupt typing
     try{ await loadClient(); var y=window.scrollY; renderApp(); window.scrollTo(0,y); }catch(e){}
   }
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) clientRefresh(); });
-  async function logout(){ clearInterval(refreshTimer); await flush(); await sb.auth.signOut(); S.projects=[]; S.role=null; renderLogin(); }
+  async function logout(){ clearInterval(refreshTimer); clearInterval(chatTimer); await flush(); await sb.auth.signOut(); S.projects=[]; S.role=null; renderLogin(); }
 
   /* ===== shell ===== */
   function renderApp(){
+    clearInterval(chatTimer);
     var isAdmin=S.role==="admin", title, right='';
     if(S.view==="home"){
       title='<div class="proj">מערכת ניהול הסטודיו<small>שירז עטר · אדריכלות ועיצוב פנים</small></div>';
@@ -283,15 +340,18 @@
       var P=active();
       title='<div class="proj">'+esc(P.name)+'<small>'+esc(isAdmin?P.category:P.designer)+'</small></div>';
       if(isAdmin||S.projects.length>1) right+='<button class="btn ghost sm" id="homeBtn">→ כל הפרויקטים</button>';
+      if(isAdmin) right+='<button class="switch'+(S.preview?' on':'')+'" id="pvBtn" role="switch" aria-checked="'+(S.preview?'true':'false')+'"><span class="knob" aria-hidden="true"></span>תצוגת לקוח</button>';
     }
     if(isAdmin) right+='<span id="saveStat" class="savestat"></span>';
     right+='<span class="role-pill">'+(isAdmin?"צג מנהלת":"צג לקוח")+'</span><button class="btn ghost sm" id="logoutBtn">יציאה</button>';
     app.innerHTML='<div class="topbar"><div class="topin">'+title+'<div class="trow">'+right+'</div></div></div><div class="wrap" id="main"></div>';
     $("logoutBtn").onclick=logout;
-    var hb=$("homeBtn"); if(hb) hb.onclick=function(){ S.view="home"; renderApp(); };
+    var hb=$("homeBtn"); if(hb) hb.onclick=function(){ S.view="home"; S.preview=false; renderApp(); };
+    var pv=$("pvBtn"); if(pv) pv.onclick=async function(){ await flush(); S.preview=!S.preview; renderApp(); window.scrollTo(0,0); };
     if(S.view==="home") renderHome();
-    else if(isAdmin) renderAdmin();
-    else renderClient();
+    else if(isAdmin && !S.preview) renderAdmin();
+    else if(isAdmin) renderClient(viewOf(active()), true);
+    else renderClient(active(), false);
   }
 
   /* ===== home catalog ===== */
@@ -303,11 +363,25 @@
       return;
     }
     if(isAdmin){
+      h+=tabsBar();
+      if(S.tab!=="projects"){
+        m.innerHTML=h+'<div id="tabBody"></div>'; wireTabs();
+        if(S.tab==="today") renderToday(); else if(S.tab==="contacts") renderContacts(); else renderInbox();
+        return;
+      }
       var activeCount=all.filter(function(p){return overall(p)<100;}).length;
       h+='<div class="grid">'+
         '<div class="card"><h3>פרויקטים</h3><div class="kpi">'+all.length+'</div><div class="klabel">בתיק הסטודיו</div></div>'+
         '<div class="card"><h3>פעילים</h3><div class="kpi">'+activeCount+'</div><div class="klabel">בתהליך</div></div>'+
         '<div class="card"><h3>הושלמו</h3><div class="kpi">'+(all.length-activeCount)+'</div><div class="klabel">נמסרו</div></div></div>';
+      var ot=[]; all.forEach(function(p){ p.tasks.forEach(function(t){ if(!t.done&&t.t) ot.push({p:p,t:t}); }); });
+      ot.sort(function(a,b){ return String(a.t.due||"9999").localeCompare(String(b.t.due||"9999")); });
+      if(ot.length){
+        h+='<div class="sectitle">משימות פתוחות <span style="font-size:11px;color:var(--muted);font-weight:400">· '+ot.length+'</span></div><div class="card"><table><tr><th>משימה</th><th>פרויקט</th><th>עדיפות</th><th>יעד</th></tr>';
+        ot.slice(0,15).forEach(function(x){ var k=PL[x.t.pri]?x.t.pri:"mid"; var late=x.t.due&&x.t.due<today();
+          h+='<tr><td>'+esc(x.t.t)+'</td><td><a class="plink" data-open="'+esc(x.p.id)+'">'+esc(x.p.name)+'</a></td><td><span class="tag ro '+PC[k]+'">'+PL[k]+'</span></td><td'+(late?' style="color:var(--bad);font-weight:700"':'')+'>'+esc(fmtDate(x.t.due))+'</td></tr>'; });
+        h+='</table>'+(ot.length>15?'<div class="hint">מוצגות 15 הקרובות מתוך '+ot.length+'.</div>':'')+'</div>';
+      }
       h+='<div class="sectitle">הפרויקטים שלי<button class="btn primary sm" id="newProj">+ פרויקט חדש</button></div>';
       if(S.showNew){
         h+='<div class="card" style="margin-bottom:14px"><div class="cred">'+
@@ -338,6 +412,14 @@
       el.onclick=function(){ S.activeId=el.dataset.open; S.view="project"; renderApp(); window.scrollTo(0,0); };
     });
     if(isAdmin){
+      wireTabs();
+      sb.from("messages").select("project_id,sender_role,created_at").order("created_at",{ascending:false}).limit(300).then(function(r){
+        if(r.error||!r.data) return; var seen={};
+        r.data.forEach(function(m){ if(seen[m.project_id]) return; seen[m.project_id]=1;
+          if(m.sender_role!=="client") return;
+          document.querySelectorAll('.pcard[data-open="'+m.project_id+'"]').forEach(function(c){
+            if(!c.querySelector(".newmsg")){ var b=document.createElement("div"); b.className="newmsg"; b.textContent="הודעה מהלקוח ממתינה לתשובה"; c.appendChild(b); } }); });
+      });
       $("newProj").onclick=function(){ S.showNew=!S.showNew; renderHome(); };
       if(S.showNew){
         $("npCancel").onclick=function(){ S.showNew=false; renderHome(); };
@@ -345,7 +427,7 @@
           var name=$("npName").value.trim(); if(!name){ $("npErr").textContent="חסר שם פרויקט"; return; }
           $("npSave").disabled=true;
           var row={ name:name, client_name:$("npClient").value.trim(), category:$("npCat").value.trim()||"כללי",
-            data:{stages:defaultStages(),payments:[],suppliers:[],plans:[],budget:{committed:0,offers:0,estimates:0}} };
+            data:{stages:defaultStages(),payments:[],suppliers:[],plans:[],budgetLines:[],tasks:[],journal:[],docs:[],vis:{}} };
           var r=await sb.from("projects").insert(row).select().single();
           if(r.error){ $("npSave").disabled=false; $("npErr").textContent="לא נשמר — נסי שוב"; return; }
           S.projects.push(fromRow(r.data)); S.activeId=r.data.id; S.showNew=false; S.view="project"; renderApp();
@@ -369,7 +451,7 @@
       r+='<tr><td>'+(editable?'<input class="ipt" data-payf="title" data-i="'+i+'" value="'+esc(p.title)+'">':esc(p.title))+'</td>'+
          '<td>'+(editable?'<input class="ipt" style="width:100px" type="number" data-payf="amount" data-i="'+i+'" value="'+(+p.amount||0)+'">':'<span class="money">'+money(p.amount)+'</span>')+'</td>'+
          '<td><span class="tag '+(p.paid?'ok':'no')+(editable?'':' ro')+'"'+(editable?' data-pay="'+i+'"':'')+'>'+(p.paid?'שולם':'ממתין')+'</span></td>'+
-         (editable?'<td><button class="delx" data-delpay="'+i+'">×</button></td>':'')+'</tr>';
+         (editable?'<td><button class="delx" aria-label="מחיקה" data-delpay="'+i+'">×</button></td>':'')+'</tr>';
     });
     if(!editable){
       var paid=P.payments.filter(function(p){return p.paid;}).reduce(function(a,b){return a+(+b.amount||0);},0);
@@ -390,7 +472,7 @@
            '<td><input class="ipt" data-sfield="trade" data-i="'+i+'" value="'+esc(s.trade)+'"></td>'+
            '<td><span class="tag '+esc(s.status)+'" data-sup="'+i+'">'+lbl+'</span></td>'+
            '<td><input class="ipt" data-sfield="note" data-i="'+i+'" value="'+esc(s.note)+'"></td>'+
-           '<td><button class="delx" data-delsup="'+i+'">×</button></td></tr>';
+           '<td><button class="delx" aria-label="מחיקה" data-delsup="'+i+'">×</button></td></tr>';
       } else {
         r+='<tr><td>'+esc(s.nm)+'</td><td>'+esc(s.trade)+'</td><td><span class="tag ro '+esc(s.status)+'">'+lbl+'</span></td></tr>';
       }
@@ -399,20 +481,135 @@
     if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addSup">+ הוסף ספק</button></div>';
     return r;
   }
+  function filesCell(p,i,editable){
+    var h=(p.files||[]).map(function(f,j){
+      return '<span class="fchip"><a data-file="'+esc(f.path)+'" title="'+esc(fmtDate(f.at))+'">'+esc(f.name)+'</a>'+
+             (editable?'<button class="delx" aria-label="מחיקה" data-delfile="'+i+':'+j+'">×</button>':'')+'</span>';
+    }).join("");
+    if(editable) h+='<label class="btn ghost sm upl">+ קובץ<input type="file" data-upl="'+i+'" accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf" hidden></label>';
+    return h||'<span class="hint" style="margin:0">—</span>';
+  }
   function plansTable(P,editable){
-    var r='<table><tr><th>תכנית</th><th>סטטוס</th>'+(editable?'<th></th>':'')+'</tr>';
+    var r='<table><tr><th>תכנית</th><th>סטטוס</th><th>קבצים</th>'+(editable?'<th></th>':'')+'</tr>';
     P.plans.forEach(function(p,i){
       var lbl={done:"הושלם",prog:"בתהליך",todo:"לביצוע"}[p.status]||"לביצוע";
       if(editable){
         r+='<tr><td><input class="ipt" data-pfield="nm" data-i="'+i+'" value="'+esc(p.nm)+'"></td>'+
            '<td><span class="tag '+esc(p.status)+'" data-plan="'+i+'">'+lbl+'</span></td>'+
-           '<td><button class="delx" data-delplan="'+i+'">×</button></td></tr>';
+           '<td>'+filesCell(p,i,true)+'</td>'+
+           '<td><button class="delx" aria-label="מחיקה" data-delplan="'+i+'">×</button></td></tr>';
       } else {
-        r+='<tr><td>'+esc(p.nm)+'</td><td><span class="tag ro '+esc(p.status)+'">'+lbl+'</span></td></tr>';
+        r+='<tr><td>'+esc(p.nm)+'</td><td><span class="tag ro '+esc(p.status)+'">'+lbl+'</span></td><td>'+filesCell(p,i,false)+'</td></tr>';
       }
     });
     r+='</table>';
     if(editable) r+='<div class="addrow"><button class="btn ghost sm" id="addPlan">+ הוסף תכנית</button></div>';
+    return r;
+  }
+  function newId(){ return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2)); }
+  function fileExt(n){ return (n.match(/\.[A-Za-z0-9]{1,8}$/)||[""])[0].toLowerCase(); }
+  function docsHtml(P,editable){
+    var r='';
+    if(!P.docs.length) r+='<div class="hint" style="margin:0 0 8px">אין מסמכים עדיין.</div>';
+    else { r+='<table><tr><th>מסמך</th><th>תאריך</th>'+(editable?'<th>נראות</th><th></th>':'')+'</tr>';
+      P.docs.forEach(function(f,j){
+        r+='<tr><td><a class="plink" data-file="'+esc(f.path)+'">'+esc(f.name)+'</a></td><td>'+esc(fmtDate(f.at))+'</td>'+
+           (editable?'<td><span class="tag ro '+(f.internal?'todo':'ok')+'">'+(f.internal?'פנימי':'גלוי ללקוח')+'</span></td><td><button class="delx" aria-label="מחיקה" data-deldoc="'+j+'">×</button></td>':'')+'</tr>';
+      });
+      r+='</table>'; }
+    if(editable) r+='<div class="addrow"><label class="btn ghost sm upl">+ מסמך ללקוח<input type="file" data-dupl="pub" hidden></label> '+
+                    '<label class="btn ghost sm upl">+ מסמך פנימי<input type="file" data-dupl="int" hidden></label></div>'+
+                    '<div class="hint">"מסמך ללקוח" (חוזה, הצעה מאושרת, הדמיה) מופיע גם בצג הלקוח. "מסמך פנימי" נשאר אצלך בלבד. עד 50MB לקובץ.</div>';
+    return r;
+  }
+  function chatBox(){
+    return '<div id="chatList" class="chatlist"><div class="hint" style="margin:0">טוען הודעות…</div></div>'+
+           '<div class="chatform"><textarea class="ipt" id="chatText" rows="2" maxlength="4000" placeholder="כתיבת הודעה…"></textarea>'+
+           '<button class="btn primary sm" id="chatSend">שליחה</button></div><div class="err" id="chatErr"></div>';
+  }
+  function fmtTime(s){ var d=new Date(s); if(isNaN(d)) return ""; function z(n){return ("0"+n).slice(-2);} return z(d.getDate())+"/"+z(d.getMonth()+1)+" "+z(d.getHours())+":"+z(d.getMinutes()); }
+  var chatSig="";
+  async function loadChat(P){
+    var r=await sb.from("messages").select("id,sender_role,body,created_at").eq("project_id",P.id).order("created_at",{ascending:true}).limit(300);
+    var el=$("chatList"); if(!el||r.error) return;
+    var rows=r.data||[], sig=P.id+":"+rows.length+":"+(rows.length?rows[rows.length-1].id:0);
+    if(sig===chatSig && el.dataset.sig===sig) return;
+    chatSig=sig; el.dataset.sig=sig;
+    if(!rows.length){ el.innerHTML='<div class="hint" style="margin:0">אין הודעות עדיין. אפשר לכתוב כאן שאלה או עדכון על הפרויקט.</div>'; return; }
+    el.innerHTML=rows.map(function(m){
+      var mine=m.sender_role===S.role;
+      return '<div class="msg '+(mine?'mine':'theirs')+'"><div class="mmeta">'+(m.sender_role==="admin"?"שירז עטר":"הלקוח")+' · '+fmtTime(m.created_at)+'</div>'+
+             '<div>'+esc(m.body).replace(/\n/g,"<br>")+'</div></div>';
+    }).join("");
+    el.scrollTop=el.scrollHeight;
+  }
+  function wireChat(P){
+    var tx=$("chatText"), btn=$("chatSend"); if(!tx) return;
+    tx.value=S.chatDraft[P.id]||"";
+    tx.oninput=function(){ S.chatDraft[P.id]=tx.value; };
+    btn.onclick=async function(){
+      var b=tx.value.trim(); if(!b) return;
+      btn.disabled=true; $("chatErr").textContent="";
+      var r=await sb.from("messages").insert({project_id:P.id,sender_role:S.role,body:b});
+      btn.disabled=false;
+      if(r.error){ $("chatErr").textContent="ההודעה לא נשלחה — נסו שוב"; return; }
+      tx.value=""; S.chatDraft[P.id]=""; loadChat(P);
+    };
+    loadChat(P);
+    clearInterval(chatTimer);
+    chatTimer=setInterval(function(){ if(!document.hidden) loadChat(P); },15000);
+  }
+  var BL={commit:"מחויב",offer:"בהצעה",est:"הערכה"}, BC={commit:"ok",offer:"wait",est:"todo"};
+  function budgetSums(P){
+    var s={commit:0,offer:0,est:0,paid:0};
+    P.budgetLines.forEach(function(l){ var k=BL[l.status]?l.status:"est"; s[k]+=(+l.amount||0); s.paid+=(+l.paid||0); });
+    s.total=s.commit+s.offer+s.est; return s;
+  }
+  function budgetTable(P){
+    var r='<table><tr><th>פריט / ספק</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th><th>סטטוס</th><th></th></tr>';
+    P.budgetLines.forEach(function(l,i){
+      var k=BL[l.status]?l.status:"est";
+      r+='<tr><td><input class="ipt" data-bf="nm" data-i="'+i+'" value="'+esc(l.nm)+'"></td>'+
+         '<td><input class="ipt" style="width:110px" type="number" data-bf="amount" data-i="'+i+'" value="'+(+l.amount||0)+'"></td>'+
+         '<td><input class="ipt" style="width:110px" type="number" data-bf="paid" data-i="'+i+'" value="'+(+l.paid||0)+'"></td>'+
+         '<td class="money">'+money((+l.amount||0)-(+l.paid||0))+'</td>'+
+         '<td><span class="tag '+BC[k]+'" data-bstat="'+i+'">'+BL[k]+'</span></td>'+
+         '<td><button class="delx" aria-label="מחיקה" data-delbl="'+i+'">×</button></td></tr>';
+    });
+    var s=budgetSums(P);
+    r+='</table><div class="addrow"><button class="btn ghost sm" id="addBL">+ הוסף שורת תקציב</button></div>'+
+       '<table style="margin-top:14px"><tr><td>מחויב (חוזים / נסגר)</td><td class="money">'+money(s.commit)+'</td></tr>'+
+       '<tr><td>בהצעות מחיר</td><td class="money">'+money(s.offer)+'</td></tr>'+
+       '<tr><td>הערכות</td><td class="money">'+money(s.est)+'</td></tr>'+
+       '<tr style="font-weight:800"><td>סה״כ צפי פרויקט</td><td class="money">'+money(s.total)+'</td></tr>'+
+       '<tr><td>שולם עד כה</td><td class="money">'+money(s.paid)+'</td></tr>'+
+       '<tr style="font-weight:700"><td>יתרה לתשלום</td><td class="money">'+money(s.total-s.paid)+'</td></tr></table>';
+    return r;
+  }
+  var PL={hi:"גבוהה",mid:"רגילה",lo:"נמוכה"}, PC={hi:"no",mid:"wait",lo:"todo"};
+  function tasksTable(P){
+    var r='<table><tr><th style="width:34px"></th><th>משימה</th><th>עדיפות</th><th>תאריך יעד</th><th></th></tr>';
+    P.tasks.forEach(function(t,i){
+      var k=PL[t.pri]?t.pri:"mid";
+      r+='<tr'+(t.done?' style="opacity:.5"':'')+'><td><input type="checkbox" data-tdone="'+i+'"'+(t.done?' checked':'')+'></td>'+
+         '<td><input class="ipt" data-tf="t" data-i="'+i+'" value="'+esc(t.t)+'"'+(t.done?' style="text-decoration:line-through"':'')+'></td>'+
+         '<td><span class="tag '+PC[k]+'" data-tpri="'+i+'">'+PL[k]+'</span></td>'+
+         '<td><input class="ipt" style="width:150px" type="date" data-tf="due" data-i="'+i+'" value="'+esc(t.due||"")+'"></td>'+
+         '<td><button class="delx" aria-label="מחיקה" data-deltask="'+i+'">×</button></td></tr>';
+    });
+    r+='</table><div class="addrow"><button class="btn ghost sm" id="addTask">+ הוסף משימה</button></div>';
+    return r;
+  }
+  function journalHtml(P){
+    var r='<div class="cred"><div style="flex:0 0 170px"><label class="klabel">תאריך</label><input class="ipt" type="date" id="jDate" value="'+today()+'"></div>'+
+          '<div style="flex:1 1 300px"><label class="klabel">סיכום פגישה / הערה</label><textarea class="ipt" id="jText" rows="2"></textarea></div></div>'+
+          '<div class="addrow"><button class="btn ghost sm" id="jAdd">+ הוסף ליומן</button></div>';
+    var idx=P.journal.map(function(e,i){return i;}).sort(function(a,b){ return String(P.journal[b].date).localeCompare(String(P.journal[a].date)) || b-a; });
+    idx.forEach(function(i){
+      var e=P.journal[i];
+      r+='<div class="jentry"><div class="jhead"><b>'+esc(fmtDate(e.date))+'</b><button class="delx" aria-label="מחיקה" data-deljr="'+i+'">×</button></div>'+
+         '<div>'+esc(e.text).replace(/\n/g,"<br>")+'</div></div>';
+    });
     return r;
   }
 
@@ -423,7 +620,7 @@
     var paid=P.payments.filter(function(p){return p.paid;}).reduce(function(a,b){return a+(+b.amount||0);},0);
     var totalFee=P.payments.reduce(function(a,b){return a+(+b.amount||0);},0);
     var closed=P.suppliers.filter(function(s){return s.status==="ok";}).length;
-    var grand=(+P.budget.committed||0)+(+P.budget.offers||0)+(+P.budget.estimates||0);
+    var openTasks=P.tasks.filter(function(t){return !t.done;}).length;
     var h='<div class="grid">';
     h+='<div class="card"><h3>התקדמות כללית</h3><div class="kpi">'+overall(P)+'<small>%</small></div><div class="bar" style="margin-top:10px"><i style="width:'+overall(P)+'%"></i></div></div>';
     h+='<div class="card"><h3>ימי רכישות שנותרו</h3><div class="kpi">'+(dl==null?"—":dl)+' <small>ימים</small></div><div class="klabel">יעד: <input class="ipt" style="width:160px;display:inline-block" type="date" id="dlDate" value="'+esc(P.shoppingDeadline)+'"></div></div>';
@@ -435,18 +632,18 @@
        '<div><label class="klabel">לקוח</label><input class="ipt" id="pClient" value="'+esc(P.client)+'"></div>'+
        '<div><label class="klabel">קטגוריה</label><input class="ipt" id="pCat" value="'+esc(P.category)+'"></div></div></div>';
 
-    h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card"><table>'+
-       '<tr><th>קטגוריה</th><th>סכום (כולל מע״מ)</th></tr>'+
-       '<tr><td>מחויב (חוזים/תשלומים)</td><td><input class="ipt" style="width:140px" type="number" id="bC" value="'+(+P.budget.committed||0)+'"></td></tr>'+
-       '<tr><td>בהצעות מחיר</td><td><input class="ipt" style="width:140px" type="number" id="bO" value="'+(+P.budget.offers||0)+'"></td></tr>'+
-       '<tr><td>הערכות (עיצוב רך/להשלמה)</td><td><input class="ipt" style="width:140px" type="number" id="bE" value="'+(+P.budget.estimates||0)+'"></td></tr>'+
-       '<tr style="font-weight:800"><td>סה״כ צפי פרויקט</td><td class="money">'+money(grand)+'</td></tr></table></div>';
-
+    h+='<div class="sectitle">משימות <span style="font-size:11px;color:var(--muted);font-weight:400">· '+openTasks+' פתוחות · פנימי</span></div><div class="card">'+tasksTable(P)+'</div>';
+    h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+budgetTable(P)+'<div class="hint">לחיצה על התגית: מחויב ← בהצעה ← הערכה. הסכומים כוללים מע״מ.</div></div>';
     h+='<div class="sectitle">שלבי התקדמות</div><div class="card">'+stagesHtml(P,true)+'</div>';
     h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,true)+'</div>';
     h+='<div class="sectitle">ספקים · סטטוס סגירה</div><div class="card">'+suppliersTable(P,true)+'<div class="hint">לחיצה על התגית: סגור ← בתהליך ← לא סגור. ההערות פנימיות ולא מוצגות ללקוח.</div></div>';
-    h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,true)+'<div class="hint">לחיצה על התגית: הושלם ← בתהליך ← לביצוע.</div></div>';
+    h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,true)+'<div class="hint">לחיצה על התגית: הושלם ← בתהליך ← לביצוע. קבצים שמועלים כאן (עד 50MB לקובץ) זמינים גם ללקוח של הפרויקט.</div></div>';
+    h+='<div class="sectitle">יומן פגישות <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי</span></div><div class="card">'+journalHtml(P)+'</div>';
 
+    h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,true)+'</div>';
+    h+='<div class="sectitle">הודעות עם הלקוח</div><div class="card">'+chatBox()+'</div>';
+    h+='<div class="sectitle">קבלות, הצעות מחיר ומסמכים מהלקוח</div><div class="card">'+clientFilesBox()+'</div>';
+    h+='<div class="sectitle">מה הלקוח רואה</div><div class="card">'+visHtml(P)+'<div class="hint">כיבוי מתג מסתיר את החלק הזה מהלקוח (נאכף בשרת, לא רק במסך). שלבי ההתקדמות מוצגים תמיד. התקציב, המשימות, היומן, ההערות על ספקים ומסמכים פנימיים אינם מוצגים ללקוח אף פעם. כדי לראות בדיוק מה הלקוח רואה, הפעילי "תצוגת לקוח" למעלה.</div></div>';
     h+='<div class="sectitle">גישת הלקוח לפרויקט זה</div><div class="card"><div class="cred">'+
        '<div><label class="klabel">האימייל של הלקוח</label><input class="ipt" id="cEmail" type="email" dir="ltr" value="'+esc(P.clientEmail)+'" placeholder="client@example.com"></div></div>'+
        '<div class="hint">הלקוח נכנס לכתובת המערכת, לוחץ "כניסה ראשונה", ויוצר סיסמה עם האימייל הזה בדיוק. הוא יראה רק את הפרויקט הזה: שלבים, תשלומים, ימי רכישות, ספקים ותוכניות. התקציב הפנימי וההערות לא מוצגים לו.</div></div>';
@@ -454,6 +651,9 @@
     h+='<div class="sectitle" style="color:var(--bad);border-color:var(--bad)">אזור מסוכן</div><div class="card"><button class="btn ghost sm" id="delProj" style="color:var(--bad);border-color:#e3c3bd">מחק את הפרויקט הזה</button></div>';
     m.innerHTML=h;
     wireAdmin(P);
+    wireChat(P);
+    wireClientFiles(P);
+    document.querySelectorAll('[data-vis]').forEach(function(el){ el.onclick=function(){ var k=el.dataset.vis; P.vis=P.vis||{}; P.vis[k]=(P.vis[k]===false); save(P); renderAdmin(); }; });
   }
   function wireAdmin(P){
     function re(){ save(P); renderAdmin(); }
@@ -462,12 +662,12 @@
     $("pCat").onchange=function(e){ P.category=e.target.value||"כללי"; save(P); };
     $("cEmail").onchange=function(e){ P.clientEmail=e.target.value.trim(); save(P); };
     $("dlDate").onchange=function(e){ P.shoppingDeadline=e.target.value; re(); };
-    $("bC").onchange=function(e){ P.budget.committed=+e.target.value||0; re(); };
-    $("bO").onchange=function(e){ P.budget.offers=+e.target.value||0; re(); };
-    $("bE").onchange=function(e){ P.budget.estimates=+e.target.value||0; re(); };
     $("delProj").onclick=async function(){
       if(!confirm('למחוק את הפרויקט "'+P.name+'"? פעולה בלתי הפיכה.')) return;
       delete pending[P.id];
+      var fl=allFiles(P);
+      var cfr=await sb.from("client_files").select("path").eq("project_id",P.id); (cfr.data||[]).forEach(function(x){ fl.push(x.path); });
+      if(fl.length) await sb.storage.from("plans").remove(fl);
       var r=await sb.from("projects").delete().eq("id",P.id);
       if(r.error){ setStat("המחיקה נכשלה",true); return; }
       S.projects=S.projects.filter(function(x){return x.id!==P.id;}); S.view="home"; renderApp();
@@ -486,27 +686,267 @@
     document.querySelectorAll('[data-sfield]').forEach(function(el){ el.onchange=function(){ P.suppliers[+el.dataset.i][el.dataset.sfield]=el.value; save(P); }; });
     var apl=$("addPlan"); if(apl) apl.onclick=function(){ P.plans.push({nm:"תכנית חדשה",status:"todo"}); re(); };
     document.querySelectorAll('[data-plan]').forEach(function(el){ el.onclick=function(){ var i=+el.dataset.plan; P.plans[i].status=({done:"prog",prog:"todo",todo:"done"})[P.plans[i].status]||"todo"; re(); }; });
-    document.querySelectorAll('[data-delplan]').forEach(function(el){ el.onclick=function(){ P.plans.splice(+el.dataset.delplan,1); re(); }; });
+    document.querySelectorAll('[data-delplan]').forEach(function(el){ el.onclick=async function(){
+      var i=+el.dataset.delplan, fl=(P.plans[i].files||[]).map(function(f){return f.path;});
+      if(fl.length){ if(!confirm("למחוק את התכנית יחד עם "+fl.length+" קבצים?")) return; await sb.storage.from("plans").remove(fl); }
+      P.plans.splice(i,1); re(); }; });
+    document.querySelectorAll('[data-upl]').forEach(function(inp){ inp.onchange=async function(){
+      var i=+inp.dataset.upl, f=inp.files[0]; if(!f) return;
+      if(f.size>50*1024*1024){ setStat("קובץ גדול מדי (עד 50MB)",true); return; }
+      setStat("מעלה קובץ…");
+      var ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[""])[0].toLowerCase();
+      var id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2));
+      var path=P.id+"/"+id+ext;
+      var r=await sb.storage.from("plans").upload(path,f,{contentType:f.type||"application/octet-stream"});
+      if(r.error){ setStat("העלאת הקובץ נכשלה",true); return; }
+      P.plans[i].files=P.plans[i].files||[]; P.plans[i].files.push({path:path,name:f.name,at:today()}); re(); }; });
+    document.querySelectorAll('[data-delfile]').forEach(function(el){ el.onclick=async function(){
+      var a=el.dataset.delfile.split(":"), i=+a[0], j=+a[1], f=P.plans[i].files[j];
+      if(!confirm('למחוק את הקובץ "'+f.name+'"?')) return;
+      await sb.storage.from("plans").remove([f.path]); P.plans[i].files.splice(j,1); re(); }; });
+    wireFiles();
+    document.querySelectorAll('[data-dupl]').forEach(function(inp){ inp.onchange=async function(){
+      var f=inp.files[0], internal=inp.dataset.dupl==="int"; if(!f) return;
+      if(f.size>50*1024*1024){ setStat("קובץ גדול מדי (עד 50MB)",true); return; }
+      setStat("מעלה קובץ…");
+      var path=P.id+"/"+(internal?"internal":"docs")+"/"+newId()+fileExt(f.name);
+      var r=await sb.storage.from("plans").upload(path,f,{contentType:f.type||"application/octet-stream"});
+      if(r.error){ setStat("העלאת הקובץ נכשלה",true); return; }
+      P.docs.push({path:path,name:f.name,at:today(),internal:internal}); re(); }; });
+    document.querySelectorAll('[data-deldoc]').forEach(function(el){ el.onclick=async function(){
+      var j=+el.dataset.deldoc, f=P.docs[j];
+      if(!confirm('למחוק את המסמך "'+f.name+'"?')) return;
+      await sb.storage.from("plans").remove([f.path]); P.docs.splice(j,1); re(); }; });
+    // budget lines
+    var abl=$("addBL"); if(abl) abl.onclick=function(){ P.budgetLines.push({nm:"",amount:0,paid:0,status:"offer"}); re(); };
+    document.querySelectorAll('[data-bf]').forEach(function(el){ el.onchange=function(){ var k=el.dataset.bf; P.budgetLines[+el.dataset.i][k]= k==="nm"?el.value:(+el.value||0); re(); }; });
+    document.querySelectorAll('[data-bstat]').forEach(function(el){ el.onclick=function(){ var l=P.budgetLines[+el.dataset.bstat]; l.status=({commit:"offer",offer:"est",est:"commit"})[l.status]||"commit"; re(); }; });
+    document.querySelectorAll('[data-delbl]').forEach(function(el){ el.onclick=function(){ P.budgetLines.splice(+el.dataset.delbl,1); re(); }; });
+    // tasks
+    var at=$("addTask"); if(at) at.onclick=function(){ P.tasks.push({t:"",pri:"mid",due:"",done:false}); re(); };
+    document.querySelectorAll('[data-tdone]').forEach(function(el){ el.onchange=function(){ P.tasks[+el.dataset.tdone].done=el.checked; re(); }; });
+    document.querySelectorAll('[data-tf]').forEach(function(el){ el.onchange=function(){ P.tasks[+el.dataset.i][el.dataset.tf]=el.value; save(P); }; });
+    document.querySelectorAll('[data-tpri]').forEach(function(el){ el.onclick=function(){ var t=P.tasks[+el.dataset.tpri]; t.pri=({hi:"mid",mid:"lo",lo:"hi"})[t.pri]||"mid"; re(); }; });
+    document.querySelectorAll('[data-deltask]').forEach(function(el){ el.onclick=function(){ P.tasks.splice(+el.dataset.deltask,1); re(); }; });
+    // journal
+    $("jAdd").onclick=function(){ var tx=$("jText").value.trim(); if(!tx) return; P.journal.push({date:$("jDate").value||today(),text:tx}); re(); };
+    document.querySelectorAll('[data-deljr]').forEach(function(el){ el.onclick=function(){ if(!confirm("למחוק את הרשומה מהיומן?")) return; P.journal.splice(+el.dataset.deljr,1); re(); }; });
     document.querySelectorAll('[data-pfield]').forEach(function(el){ el.onchange=function(){ P.plans[+el.dataset.i][el.dataset.pfield]=el.value; save(P); }; });
   }
 
   /* ===== client ===== */
-  function renderClient(){
-    var P=active(), m=$("main");
-    var dl=daysLeft(P.shoppingDeadline);
+  var VIS=[["payments","שלבי תשלום"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (סגורים / לא סגורים)"],["plans","תוכניות עבודה וקבצים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
+  function visHtml(P){
+    var V=P.vis||{};
+    return VIS.map(function(v){ var on=V[v[0]]!==false;
+      return '<div class="visrow"><span>'+v[1]+'</span><button class="switch'+(on?' on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="'+esc(v[1])+'" data-vis="'+v[0]+'"><span class="knob" aria-hidden="true"></span>'+(on?'מוצג':'מוסתר')+'</button></div>';
+    }).join("");
+  }
+  // what the server would hand the client for this project (used by the designer's "client view" switch)
+  function viewOf(P){
+    var C=JSON.parse(JSON.stringify(P)), V=C.vis||{};
+    C.tasks=[]; C.journal=[]; C.budgetLines=[];
+    C.suppliers=C.suppliers.map(function(x){ delete x.note; return x; });
+    C.docs=C.docs.filter(function(d){ return !d.internal; });
+    if(V.payments===false) C.payments=[];
+    if(V.suppliers===false) C.suppliers=[];
+    if(V.plans===false) C.plans=[];
+    if(V.docs===false) C.docs=[];
+    if(V.shopping===false) C.shoppingDeadline="";
+    return C;
+  }
+  var KIND={receipt:"קבלה",quote:"הצעת מחיר",other:"מסמך"}, KC={receipt:"ok",quote:"wait",other:"todo"};
+  function clientFilesBox(){
+    return '<div class="cred" id="cfForm">'+
+      '<div style="flex:0 0 150px"><label class="klabel" for="cfKind">סוג</label><select class="ipt" id="cfKind"><option value="receipt">קבלה</option><option value="quote">הצעת מחיר</option><option value="other">מסמך אחר</option></select></div>'+
+      '<div style="flex:0 0 130px"><label class="klabel" for="cfAmount">סכום (לא חובה)</label><input class="ipt" id="cfAmount" type="number" inputmode="decimal"></div>'+
+      '<div style="flex:1 1 200px"><label class="klabel" for="cfNote">הערה (ממי, על מה)</label><input class="ipt" id="cfNote" maxlength="300"></div>'+
+      '<div style="flex:1 1 200px"><label class="klabel" for="cfFile">קובץ</label><input class="ipt" id="cfFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.heic,.doc,.docx,.xls,.xlsx"></div></div>'+
+      '<div class="addrow"><button class="btn primary sm" id="cfAdd">העלאה</button> <span class="err" id="cfErr" role="status"></span></div>'+
+      '<div id="cfList" style="margin-top:12px"><div class="hint" style="margin:0">טוען…</div></div>';
+  }
+  async function loadClientFiles(P){
+    var r=await sb.from("client_files").select("id,path,name,kind,amount,note,uploader_role,created_at").eq("project_id",P.id).order("created_at",{ascending:false}).limit(500);
+    var el=$("cfList"); if(!el) return;
+    if(r.error){ el.innerHTML='<div class="hint" style="margin:0">לא ניתן לטעון את המסמכים.</div>'; return; }
+    var rows=r.data||[];
+    if(!rows.length){ el.innerHTML='<div class="hint" style="margin:0">עדיין לא הועלו מסמכים. אפשר להעלות כאן כל קבלה, הצעת מחיר או מסמך שקשור לפרויקט.</div>'; return; }
+    var sumR=0, sumQ=0;
+    var h='<table><tr><th>מסמך</th><th>סוג</th><th>סכום</th><th>הערה</th><th>תאריך</th><th>הועלה ע״י</th><th></th></tr>';
+    rows.forEach(function(f){
+      var k=KIND[f.kind]?f.kind:"other"; if(k==="receipt") sumR+=(+f.amount||0); if(k==="quote") sumQ+=(+f.amount||0);
+      var canDel=S.role==="admin"||f.uploader_role==="client";
+      h+='<tr><td><a class="plink" data-file="'+esc(f.path)+'">'+esc(f.name)+'</a></td><td><span class="tag ro '+KC[k]+'">'+KIND[k]+'</span></td>'+
+         '<td class="money">'+(f.amount!=null?money(f.amount):'')+'</td><td>'+esc(f.note)+'</td><td>'+esc(fmtDate(f.created_at))+'</td>'+
+         '<td>'+(f.uploader_role==="admin"?"המעצבת":"הלקוח")+'</td>'+
+         '<td>'+(canDel?'<button class="delx" aria-label="מחיקת המסמך" data-delcf="'+esc(f.id)+'" data-path="'+esc(f.path)+'">×</button>':'')+'</td></tr>';
+    });
+    h+='</table>';
+    if(sumR||sumQ) h+='<div class="hint">סה״כ קבלות: <b>'+money(sumR)+'</b> · סה״כ הצעות מחיר: <b>'+money(sumQ)+'</b> (לפי הסכומים שהוזנו)</div>';
+    el.innerHTML=h; wireFiles();
+    document.querySelectorAll('[data-delcf]').forEach(function(b){ b.onclick=async function(){
+      if(!confirm("למחוק את המסמך?")) return;
+      await sb.storage.from("plans").remove([b.dataset.path]);
+      await sb.from("client_files").delete().eq("id",b.dataset.delcf); loadClientFiles(P); }; });
+  }
+  function wireClientFiles(P){
+    var btn=$("cfAdd"); if(!btn) return;
+    btn.onclick=async function(){
+      var f=$("cfFile").files[0], err=$("cfErr"); err.style.color=""; err.textContent="";
+      if(!f){ err.textContent="יש לבחור קובץ"; return; }
+      if(f.size>50*1024*1024){ err.textContent="קובץ גדול מדי (עד 50MB)"; return; }
+      btn.disabled=true; err.style.color="var(--muted)"; err.textContent="מעלה…";
+      var path=P.id+"/client/"+newId()+fileExt(f.name);
+      var u=await sb.storage.from("plans").upload(path,f,{contentType:f.type||"application/octet-stream"});
+      if(u.error){ btn.disabled=false; err.style.color=""; err.textContent="ההעלאה נכשלה — נסו שוב"; return; }
+      var amt=$("cfAmount").value;
+      var r=await sb.from("client_files").insert({project_id:P.id,path:path,name:f.name,kind:$("cfKind").value,amount:amt===""?null:(+amt||0),note:$("cfNote").value.trim(),uploader_role:S.role});
+      btn.disabled=false;
+      if(r.error){ await sb.storage.from("plans").remove([path]); err.style.color=""; err.textContent="השמירה נכשלה — נסו שוב"; return; }
+      err.textContent=""; $("cfFile").value=""; $("cfAmount").value=""; $("cfNote").value="";
+      loadClientFiles(P);
+    };
+    loadClientFiles(P);
+  }
+  function renderClient(P, preview){
+    var m=$("main"), V=P.vis||{};
+    function can(k){ return V[k]!==false; }
+    var dl=can("shopping")?daysLeft(P.shoppingDeadline):null;
     var closed=P.suppliers.filter(function(s){return s.status==="ok";}).length;
     var totalFee=P.payments.reduce(function(a,b){return a+(+b.amount||0);},0);
     var next=P.stages.filter(function(s){return (+s.pct||0)<100;})[0];
-    var h='<div class="grid">';
+    var h='';
+    if(preview) h+='<div class="pvbanner" role="status">תצוגת לקוח — כך הלקוח רואה את הפרויקט. כבי את המתג למעלה כדי לחזור למסך המלא שלך.</div>';
+    h+='<div class="grid">';
     h+='<div class="card"><h3>התקדמות הפרויקט</h3><div class="kpi">'+overall(P)+'<small>%</small></div><div class="bar" style="margin-top:10px"><i style="width:'+overall(P)+'%"></i></div><div class="klabel">'+(next?'שלב נוכחי: '+esc(next.nm):'כל השלבים הושלמו')+'</div></div>';
     if(dl!=null) h+='<div class="card"><h3>ימי רכישות שנותרו</h3><div class="kpi">'+dl+' <small>ימים</small></div><div class="klabel">לסיום שלב הרכש</div></div>';
-    h+='<div class="card"><h3>אנשי מקצוע סגורים</h3><div class="kpi">'+closed+' <small>/ '+P.suppliers.length+'</small></div><div class="klabel">ספקים שכבר נסגרו</div></div></div>';
+    if(can("suppliers")&&P.suppliers.length) h+='<div class="card"><h3>אנשי מקצוע סגורים</h3><div class="kpi">'+closed+' <small>/ '+P.suppliers.length+'</small></div><div class="klabel">ספקים שכבר נסגרו</div></div>';
+    h+='</div>';
     h+='<div class="sectitle">שלבי הפרויקט</div><div class="card">'+stagesHtml(P,false)+'</div>';
-    if(totalFee>0) h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,false)+'</div>';
-    if(P.suppliers.length) h+='<div class="sectitle">ספקים · סגורים ולא סגורים</div><div class="card">'+suppliersTable(P,false)+'</div>';
-    if(P.plans.length) h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,false)+'</div>';
+    if(can("payments")&&totalFee>0) h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,false)+'</div>';
+    if(can("suppliers")&&P.suppliers.length) h+='<div class="sectitle">ספקים · סגורים ולא סגורים</div><div class="card">'+suppliersTable(P,false)+'</div>';
+    if(can("plans")&&P.plans.length) h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,false)+'</div>';
+    if(can("docs")&&P.docs.length) h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,false)+'</div>';
+    if(can("uploads")) h+='<div class="sectitle">המסמכים שלי · קבלות והצעות מחיר</div><div class="card">'+clientFilesBox()+'</div>';
+    if(can("chat")) h+='<div class="sectitle">הודעות · שאלות למעצבת</div><div class="card">'+chatBox()+'</div>';
     h+='<div class="foot">מערכת ניהול הפרויקט · '+esc(P.designer)+'</div>';
     m.innerHTML=h;
+    wireFiles();
+    if(can("chat")) wireChat(P);
+    if(can("uploads")) wireClientFiles(P);
+  }
+
+  /* ===== home tabs: today / contacts / inbox ===== */
+  function tabsBar(){
+    var T=[["today","הבוקר שלי"],["projects","פרויקטים"],["contacts","ספקים ואנשי קשר"],["inbox","מהמייל"]];
+    return '<div class="tabs" role="tablist">'+T.map(function(t){ var on=S.tab===t[0];
+      return '<button role="tab" aria-selected="'+(on?'true':'false')+'" class="tab'+(on?' on':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>'; }).join("")+'</div>';
+  }
+  function wireTabs(){ document.querySelectorAll('[data-tab]').forEach(function(el){ el.onclick=function(){ S.tab=el.dataset.tab; renderHome(); }; }); }
+  function plusDays(n){ var d=new Date(); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+  async function renderToday(){
+    var body=$("tabBody"); body.innerHTML='<div class="hint">טוען…</div>';
+    var waiting={}, newFiles={};
+    try{
+      var r=await sb.from("messages").select("project_id,sender_role,created_at").order("created_at",{ascending:false}).limit(300);
+      var seen={}; (r.data||[]).forEach(function(x){ if(seen[x.project_id]) return; seen[x.project_id]=1; if(x.sender_role==="client") waiting[x.project_id]=1; });
+      var f=await sb.from("client_files").select("project_id,uploader_role,created_at").gte("created_at",new Date(Date.now()-7*864e5).toISOString()).limit(500);
+      (f.data||[]).forEach(function(x){ if(x.uploader_role==="client") newFiles[x.project_id]=(newFiles[x.project_id]||0)+1; });
+    }catch(e){}
+    body=$("tabBody"); if(S.tab!=="today"||S.view!=="home"||!body) return;
+    var td=today(), wk=plusDays(7), key="studioTicks:"+td, ticks={};
+    try{ ticks=JSON.parse(localStorage.getItem(key)||"{}"); }catch(e){}
+    var hr=new Date().getHours(), greet=hr<12?"בוקר טוב":(hr<18?"צהריים טובים":"ערב טוב");
+    var h='<div class="sectitle">'+greet+' · מה על הפרק היום ('+fmtDate(td)+')</div>', any=false;
+    S.projects.forEach(function(P){
+      var it=[];
+      P.tasks.forEach(function(t,i){ if(t.done||!t.t) return;
+        if(t.due&&t.due<=wk) it.push({task:i,txt:t.t,tag:t.due<td?"באיחור":(t.due===td?"היום":fmtDate(t.due)),bad:t.due<=td});
+        else if(!t.due&&t.pri==="hi") it.push({task:i,txt:t.t,tag:"עדיפות גבוהה"}); });
+      if(waiting[P.id]) it.push({id:"msg",txt:"לענות להודעת הלקוח",tag:"ממתין",bad:true});
+      if(newFiles[P.id]) it.push({id:"cf",txt:"לעבור על "+newFiles[P.id]+" מסמכים שהלקוח העלה השבוע"});
+      var open=P.suppliers.filter(function(x){return x.status!=="ok";}).map(function(x){return x.nm;});
+      if(open.length) it.push({id:"sup",txt:"ספקים פתוחים: "+open.slice(0,4).join(", ")+(open.length>4?" ועוד "+(open.length-4):"")});
+      var pl=P.plans.filter(function(x){return x.status!=="done";}).length;
+      if(pl) it.push({id:"pl",txt:pl+" תוכניות עבודה שלא הושלמו"});
+      var np=P.payments.filter(function(x){return !x.paid;})[0];
+      if(np) it.push({id:"pay",txt:"תשלום הבא מהלקוח: "+np.title+" · "+money(np.amount)});
+      var dl=daysLeft(P.shoppingDeadline);
+      if(dl!=null&&dl<=14) it.push({id:"shop",txt:dl<0?"יעד הרכישות עבר":("נותרו "+dl+" ימים ליעד הרכישות"),bad:dl<3});
+      if(!it.length) return; any=true;
+      h+='<div class="card" style="margin-bottom:12px"><h3><a class="plink" data-open="'+esc(P.id)+'">'+esc(P.name)+'</a><span class="role-pill">'+overall(P)+'%</span></h3>';
+      it.forEach(function(x){
+        var tk=x.task!=null, idk=P.id+":"+(tk?("t"+x.task):x.id), on=!tk&&ticks[idk];
+        h+='<label class="chk'+(on?' done':'')+'"><input type="checkbox" '+(tk?'data-ttask="'+esc(P.id)+':'+x.task+'"':'data-tick="'+esc(idk)+'"')+(on?' checked':'')+'><span>'+esc(x.txt)+'</span>'+
+           (x.tag?'<span class="tag ro '+(x.bad?'no':'todo')+'">'+esc(x.tag)+'</span>':'')+'</label>';
+      });
+      h+='</div>';
+    });
+    if(!any) h+='<div class="card"><div class="hint" style="margin:0">אין כרגע משימות פתוחות או דברים שמחכים לך. </div></div>';
+    h+='<div class="hint">סימון משימה כאן מסמן אותה כבוצעה בפרויקט. שאר הסימונים הם תזכורת יומית שנשמרת במכשיר הזה ומתאפסת מחר.</div>';
+    body.innerHTML=h;
+    document.querySelectorAll('#tabBody [data-open]').forEach(function(el){ el.onclick=function(){ S.activeId=el.dataset.open; S.view="project"; S.preview=false; renderApp(); window.scrollTo(0,0); }; });
+    document.querySelectorAll('[data-tick]').forEach(function(el){ el.onchange=function(){ ticks[el.dataset.tick]=el.checked; try{ localStorage.setItem(key,JSON.stringify(ticks)); }catch(e){} el.parentNode.classList.toggle("done",el.checked); }; });
+    document.querySelectorAll('[data-ttask]').forEach(function(el){ el.onchange=function(){ var a=el.dataset.ttask.split(":"), P=byId(a[0]); if(!P) return; P.tasks[+a[1]].done=true; save(P); renderToday(); }; });
+  }
+  function safeUrl(u){ u=(u||"").trim(); if(!u) return ""; if(!/^https?:\/\//i.test(u)) u="https://"+u; return u; }
+  async function renderContacts(){
+    var body=$("tabBody"); body.innerHTML='<div class="hint">טוען…</div>';
+    var r=await sb.from("contacts").select("*").order("created_at",{ascending:true});
+    if(S.tab!=="contacts"||!$("tabBody")) return;
+    S.contacts=r.error?[]:(r.data||[]); drawContacts();
+  }
+  function drawContacts(){
+    var body=$("tabBody"); if(!body) return;
+    var h='<div class="sectitle">ספקים ואנשי קשר<button class="btn primary sm" id="ctAdd">+ איש קשר</button></div><div class="card">';
+    if(!S.contacts.length) h+='<div class="hint" style="margin:0">הרשימה ריקה. הוסיפי ספקים, קבלנים ויועצים שאת עובדת איתם, כולל אחוז העמלה שסוכם.</div>';
+    else {
+      h+='<table class="wide"><tr><th>שם</th><th>תחום</th><th>איש קשר</th><th>טלפון</th><th>מייל</th><th>אתר / קישור</th><th>עמלה %</th><th>הערות</th><th>קישורים</th><th></th></tr>';
+      S.contacts.forEach(function(c){
+        function inp(f,w,extra){ return '<input class="ipt" style="min-width:'+w+'px" aria-label="'+f+'" data-ct="'+f+'" data-id="'+esc(c.id)+'" value="'+esc(c[f]==null?"":c[f])+'" '+(extra||"")+'>'; }
+        var links=[]; if(c.phone) links.push('<a class="plink" href="tel:'+esc(c.phone.replace(/[^0-9+*#]/g,""))+'">חיוג</a>');
+        if(c.email) links.push('<a class="plink" href="mailto:'+esc(c.email)+'">מייל</a>');
+        if(c.url) links.push('<a class="plink" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(c.url))+'">אתר</a>');
+        h+='<tr><td>'+inp("name",120)+'</td><td>'+inp("trade",100)+'</td><td>'+inp("person",100)+'</td><td>'+inp("phone",110,'dir="ltr" inputmode="tel"')+'</td><td>'+inp("email",150,'dir="ltr" type="email"')+'</td>'+
+           '<td>'+inp("url",150,'dir="ltr"')+'</td><td>'+inp("commission_pct",60,'type="number" step="0.5" min="0" max="100"')+'</td><td>'+inp("notes",160)+'</td>'+
+           '<td style="white-space:nowrap">'+links.join(" · ")+'</td><td><button class="delx" aria-label="מחיקת איש הקשר" data-delct="'+esc(c.id)+'">×</button></td></tr>';
+      });
+      h+='</table>';
+    }
+    h+='</div><div class="hint">הרשימה פנימית לסטודיו ואינה מוצגת ללקוחות. אחוז העמלה הוא לתיעוד בלבד.</div><div class="err" id="ctErr" role="status"></div>';
+    body.innerHTML=h;
+    $("ctAdd").onclick=async function(){ var r=await sb.from("contacts").insert({name:"ספק חדש"}).select().single(); if(r.error){ $("ctErr").textContent="לא נשמר — נסי שוב"; return; } S.contacts.push(r.data); drawContacts(); };
+    document.querySelectorAll('[data-ct]').forEach(function(el){ el.onchange=async function(){
+      var f=el.dataset.ct, v=el.value, c=S.contacts.filter(function(x){return x.id===el.dataset.id;})[0]; if(!c) return;
+      if(f==="commission_pct") v=(v===""?null:(+v||0)); c[f]=v; var u={}; u[f]=v;
+      var r=await sb.from("contacts").update(u).eq("id",c.id); $("ctErr").textContent=r.error?"השינוי לא נשמר — בדקי חיבור":"";
+      if(f==="phone"||f==="email"||f==="url") drawContacts(); }; });
+    document.querySelectorAll('[data-delct]').forEach(function(el){ el.onclick=async function(){ if(!confirm("למחוק את איש הקשר?")) return;
+      var r=await sb.from("contacts").delete().eq("id",el.dataset.delct); if(r.error) return; S.contacts=S.contacts.filter(function(x){return x.id!==el.dataset.delct;}); drawContacts(); }; });
+  }
+  var IK={quote:"הצעת מחיר",meeting:"תיאום פגישה",question:"שאלה / תשובה",other:"אחר"}, IC={quote:"wait",meeting:"ok",question:"no",other:"todo"};
+  async function renderInbox(){
+    var body=$("tabBody"); body.innerHTML='<div class="hint">טוען…</div>';
+    var r=await sb.from("inbox_items").select("*").order("received_at",{ascending:false}).limit(200);
+    if(S.tab!=="inbox"||!$("tabBody")) return;
+    var rows=r.error?[]:(r.data||[]);
+    var h='<div class="sectitle">מהמייל · הצעות מחיר, תיאומים ותשובות<a class="btn primary sm" style="text-decoration:none" target="_blank" rel="noopener noreferrer" href="https://mail.google.com/">פתיחת תיבת המייל</a></div><div class="card">';
+    if(!rows.length) h+='<div class="hint" style="margin:0">עדיין לא רוכזו כאן פריטים מהמייל. הפריטים נאספים מתיבת המייל העסקית ומופיעים כאן עם קישור למייל המקורי.</div>';
+    else {
+      h+='<table class="wide"><tr><th>טופל</th><th>תאריך</th><th>סוג</th><th>מאת</th><th>נושא ותקציר</th><th>פרויקט</th><th>קישור</th><th></th></tr>';
+      rows.forEach(function(x){ var k=IK[x.kind]?x.kind:"other";
+        var opts='<option value="">—</option>'+S.projects.map(function(p){ return '<option value="'+esc(p.id)+'"'+(p.id===x.project_id?' selected':'')+'>'+esc(p.name)+'</option>'; }).join("");
+        var lk=/^https:\/\//i.test(x.link||"")?'<a class="plink" target="_blank" rel="noopener noreferrer" href="'+esc(x.link)+'">פתיחה</a>':'';
+        h+='<tr'+(x.done?' style="opacity:.5"':'')+'><td><input type="checkbox" aria-label="סימון כטופל" data-ibdone="'+x.id+'"'+(x.done?' checked':'')+'></td><td style="white-space:nowrap">'+esc(fmtDate(x.received_at))+'</td>'+
+           '<td><span class="tag ro '+IC[k]+'">'+IK[k]+'</span></td><td>'+esc(x.from_name||x.from_email)+'</td><td><b>'+esc(x.subject)+'</b><div style="color:var(--muted)">'+esc(x.summary)+'</div></td>'+
+           '<td><select class="ipt" aria-label="שיוך לפרויקט" data-ibproj="'+x.id+'">'+opts+'</select></td><td>'+lk+'</td><td><button class="delx" aria-label="הסרה מהרשימה" data-ibdel="'+x.id+'">×</button></td></tr>'; });
+      h+='</table>';
+    }
+    h+='</div>';
+    body.innerHTML=h;
+    document.querySelectorAll('[data-ibdone]').forEach(function(el){ el.onchange=async function(){ await sb.from("inbox_items").update({done:el.checked}).eq("id",+el.dataset.ibdone); renderInbox(); }; });
+    document.querySelectorAll('[data-ibproj]').forEach(function(el){ el.onchange=async function(){ await sb.from("inbox_items").update({project_id:el.value||null}).eq("id",+el.dataset.ibproj); }; });
+    document.querySelectorAll('[data-ibdel]').forEach(function(el){ el.onclick=async function(){ if(!confirm("להסיר את הפריט מהרשימה? המייל עצמו לא נמחק.")) return; await sb.from("inbox_items").delete().eq("id",+el.dataset.ibdel); renderInbox(); }; });
   }
 
   /* ===== boot ===== */
