@@ -288,6 +288,7 @@
     .card{overflow-x:visible}
   }
   @media(max-width:380px){ .grid{grid-template-columns:1fr} }
+  .ver{text-align:center;font-size:11px;color:var(--muted);margin-top:14px;opacity:.8}
 /*STAGE_CSS_END*/
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -296,6 +297,22 @@
   var SB_URL="https://lugrtbedmrntcalgkikt.supabase.co";
   var SB_KEY="sb_publishable_dPXXyx-vhCMWBaUNNOAauQ_eUwN_6gu";
   var app=document.getElementById("app");
+  var BUILD="25.11 20:31";
+  // always run the newest published version: compare with the server copy and reload once if it is newer
+  var lastVerCheck=0;
+  async function checkVersion(){
+    if(Date.now()-lastVerCheck<120000) return; lastVerCheck=Date.now();
+    try{
+      var t=await fetch("index.html?cb="+Date.now(),{cache:"no-store"}).then(function(r){return r.text();});
+      var m=t.match(/var BUILD="([^"]+)"/); if(!m||m[1]===BUILD||m[1].indexOf("__")===0) return;
+      if(sessionStorage.getItem("reloadedFor")===m[1]) return;
+      sessionStorage.setItem("reloadedFor",m[1]);
+      if(window.caches){ var ks=await caches.keys(); await Promise.all(ks.map(function(k){return caches.delete(k);})); }
+      location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));
+    }catch(e){}
+  }
+  checkVersion();
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden) checkVersion(); });
   if(!window.supabase){ app.innerHTML='<div style="padding:40px;text-align:center">לא ניתן לטעון את המערכת. בדקי חיבור לאינטרנט ורענני.</div>'; return; }
   var sb=window.supabase.createClient(SB_URL,SB_KEY);
 
@@ -369,7 +386,7 @@
     app.innerHTML='<div id="login"><div class="loginbox">'+
       '<div class="brand">SHIRAZ ATAR · STUDIO</div>'+
       '<div class="ptitle">מערכת ניהול הסטודיו</div>'+
-      '<div class="psub">ניהול פרויקטים · אדריכלות ועיצוב פנים</div>'+inner+'</div></div>';
+      '<div class="psub">ניהול פרויקטים · אדריכלות ועיצוב פנים</div>'+inner+'<div class="ver">גרסה '+BUILD+'</div></div></div>';
   }
   function renderLogin(msg, ok){
     authShell(
@@ -574,7 +591,7 @@
         '</div></div>';
     } else right+='<span class="role-pill">צג לקוח</span>';
     right+='<button class="btn ghost sm" id="logoutBtn">יציאה</button>';
-    app.innerHTML='<div class="topbar"><div class="topin">'+title+'<div class="trow">'+right+'</div></div></div><div class="wrap" id="main"></div>';
+    app.innerHTML='<div class="topbar"><div class="topin">'+title+'<div class="trow">'+right+'</div></div></div><div class="wrap" id="main"></div><div class="ver" style="padding-bottom:18px">גרסה '+BUILD+'</div>';
     $("logoutBtn").onclick=logout;
     var rb=$("roleBtn"), rm=$("roleMenu");
     if(rb&&rm){
