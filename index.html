@@ -183,7 +183,7 @@
       clientEmail:r.client_email||"", designer:r.designer||"שירז עטר · אדריכלות ועיצוב פנים",
       shoppingDeadline:r.shopping_deadline||"",
       stages:d.stages||[], payments:d.payments||[], suppliers:d.suppliers||[], plans:d.plans||[],
-      budgetLines:lines, tasks:d.tasks||[], journal:d.journal||[], docs:d.docs||[], vis:d.vis||{} };
+      budgetLines:lines, tasks:d.tasks||[], journal:d.journal||[], docs:d.docs||[], vis:d.vis||{}, clientBudget:d.clientBudget||[] };
   }
   function toRow(P){
     return { name:P.name||"פרויקט", client_name:P.client||"", category:P.category||"כללי",
@@ -566,7 +566,7 @@
     s.total=s.commit+s.offer+s.est; return s;
   }
   function budgetTable(P){
-    var r='<table><tr><th>פריט / ספק</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th><th>סטטוס</th><th></th></tr>';
+    var r='<table><tr><th>פריט / ספק</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th><th>סטטוס</th><th>ללקוח</th><th></th></tr>';
     P.budgetLines.forEach(function(l,i){
       var k=BL[l.status]?l.status:"est";
       r+='<tr><td><input class="ipt" data-bf="nm" data-i="'+i+'" value="'+esc(l.nm)+'"></td>'+
@@ -574,6 +574,7 @@
          '<td><input class="ipt" style="width:110px" type="number" data-bf="paid" data-i="'+i+'" value="'+(+l.paid||0)+'"></td>'+
          '<td class="money">'+money((+l.amount||0)-(+l.paid||0))+'</td>'+
          '<td><span class="tag '+BC[k]+'" data-bstat="'+i+'">'+BL[k]+'</span></td>'+
+         '<td><button class="switch'+(l.show?' on':'')+'" role="switch" aria-checked="'+(l.show?'true':'false')+'" aria-label="הצגת השורה ללקוח" data-bshow="'+i+'"><span class="knob" aria-hidden="true"></span>'+(l.show?'מוצג':'מוסתר')+'</button></td>'+
          '<td><button class="delx" aria-label="מחיקה" data-delbl="'+i+'">×</button></td></tr>';
     });
     var s=budgetSums(P);
@@ -633,9 +634,9 @@
        '<div><label class="klabel">קטגוריה</label><input class="ipt" id="pCat" value="'+esc(P.category)+'"></div></div></div>';
 
     h+='<div class="sectitle">משימות <span style="font-size:11px;color:var(--muted);font-weight:400">· '+openTasks+' פתוחות · פנימי</span></div><div class="card">'+tasksTable(P)+'</div>';
-    h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+budgetTable(P)+'<div class="hint">לחיצה על התגית: מחויב ← בהצעה ← הערכה. הסכומים כוללים מע״מ.</div></div>';
+    h+='<div class="sectitle">תקציב הפרויקט <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+budgetTable(P)+'<div class="hint">לחיצה על התגית: מחויב ← בהצעה ← הערכה. הסכומים כוללים מע״מ. הלקוח רואה רק שורות שהמתג "ללקוח" שלהן מופעל (שם, סכום, שולם ויתרה) — כברירת מחדל הכול מוסתר.</div></div>';
     h+='<div class="sectitle">שלבי התקדמות</div><div class="card">'+stagesHtml(P,true)+'</div>';
-    h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,true)+'</div>';
+    h+='<div class="sectitle">שכר הטרחה שלי <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי, לא מוצג ללקוח</span></div><div class="card">'+paymentsTable(P,true)+'</div>';
     h+='<div class="sectitle">ספקים · סטטוס סגירה</div><div class="card">'+suppliersTable(P,true)+'<div class="hint">לחיצה על התגית: סגור ← בתהליך ← לא סגור. ההערות פנימיות ולא מוצגות ללקוח.</div></div>';
     h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,true)+'<div class="hint">לחיצה על התגית: הושלם ← בתהליך ← לביצוע. קבצים שמועלים כאן (עד 50MB לקובץ) זמינים גם ללקוח של הפרויקט.</div></div>';
     h+='<div class="sectitle">יומן פגישות <span style="font-size:11px;color:var(--muted);font-weight:400">· פנימי</span></div><div class="card">'+journalHtml(P)+'</div>';
@@ -643,7 +644,7 @@
     h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,true)+'</div>';
     h+='<div class="sectitle">הודעות עם הלקוח</div><div class="card">'+chatBox()+'</div>';
     h+='<div class="sectitle">קבלות, הצעות מחיר ומסמכים מהלקוח</div><div class="card">'+clientFilesBox()+'</div>';
-    h+='<div class="sectitle">מה הלקוח רואה</div><div class="card">'+visHtml(P)+'<div class="hint">כיבוי מתג מסתיר את החלק הזה מהלקוח (נאכף בשרת, לא רק במסך). שלבי ההתקדמות מוצגים תמיד. התקציב, המשימות, היומן, ההערות על ספקים ומסמכים פנימיים אינם מוצגים ללקוח אף פעם. כדי לראות בדיוק מה הלקוח רואה, הפעילי "תצוגת לקוח" למעלה.</div></div>';
+    h+='<div class="sectitle">מה הלקוח רואה</div><div class="card">'+visHtml(P)+'<div class="hint">כיבוי מתג מסתיר את החלק הזה מהלקוח (נאכף בשרת, לא רק במסך). שלבי ההתקדמות מוצגים תמיד. שכר הטרחה שלך, שורות תקציב שלא סומנו, המשימות, היומן, ההערות על ספקים ומסמכים פנימיים אינם מוצגים ללקוח אף פעם. כדי לראות בדיוק מה הלקוח רואה, הפעילי "תצוגת לקוח" למעלה.</div></div>';
     h+='<div class="sectitle">גישת הלקוח לפרויקט זה</div><div class="card"><div class="cred">'+
        '<div><label class="klabel">האימייל של הלקוח</label><input class="ipt" id="cEmail" type="email" dir="ltr" value="'+esc(P.clientEmail)+'" placeholder="client@example.com"></div></div>'+
        '<div class="hint">הלקוח נכנס לכתובת המערכת, לוחץ "כניסה ראשונה", ויוצר סיסמה עם האימייל הזה בדיוק. הוא יראה רק את הפרויקט הזה: שלבים, תשלומים, ימי רכישות, ספקים ותוכניות. התקציב הפנימי וההערות לא מוצגים לו.</div></div>';
@@ -721,6 +722,7 @@
     var abl=$("addBL"); if(abl) abl.onclick=function(){ P.budgetLines.push({nm:"",amount:0,paid:0,status:"offer"}); re(); };
     document.querySelectorAll('[data-bf]').forEach(function(el){ el.onchange=function(){ var k=el.dataset.bf; P.budgetLines[+el.dataset.i][k]= k==="nm"?el.value:(+el.value||0); re(); }; });
     document.querySelectorAll('[data-bstat]').forEach(function(el){ el.onclick=function(){ var l=P.budgetLines[+el.dataset.bstat]; l.status=({commit:"offer",offer:"est",est:"commit"})[l.status]||"commit"; re(); }; });
+    document.querySelectorAll('[data-bshow]').forEach(function(el){ el.onclick=function(){ var l=P.budgetLines[+el.dataset.bshow]; l.show=!l.show; re(); }; });
     document.querySelectorAll('[data-delbl]').forEach(function(el){ el.onclick=function(){ P.budgetLines.splice(+el.dataset.delbl,1); re(); }; });
     // tasks
     var at=$("addTask"); if(at) at.onclick=function(){ P.tasks.push({t:"",pri:"mid",due:"",done:false}); re(); };
@@ -735,7 +737,7 @@
   }
 
   /* ===== client ===== */
-  var VIS=[["payments","שלבי תשלום"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (סגורים / לא סגורים)"],["plans","תוכניות עבודה וקבצים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
+  var VIS=[["payments","תשלומי הפרויקט (רק שורות תקציב שסומנו \"ללקוח\")"],["shopping","ימי רכישות שנותרו"],["suppliers","ספקים (סגורים / לא סגורים)"],["plans","תוכניות עבודה וקבצים"],["docs","מסמכי הפרויקט (שסומנו ללקוח)"],["uploads","העלאת קבלות, הצעות מחיר ומסמכים"],["chat","הודעות (צ'אט)"]];
   function visHtml(P){
     var V=P.vis||{};
     return VIS.map(function(v){ var on=V[v[0]]!==false;
@@ -748,7 +750,8 @@
     C.tasks=[]; C.journal=[]; C.budgetLines=[];
     C.suppliers=C.suppliers.map(function(x){ delete x.note; return x; });
     C.docs=C.docs.filter(function(d){ return !d.internal; });
-    if(V.payments===false) C.payments=[];
+    C.payments=[];
+    C.clientBudget=(V.payments===false)?[]:P.budgetLines.filter(function(l){return l.show;}).map(function(l){return {nm:l.nm,amount:l.amount,paid:l.paid};});
     if(V.suppliers===false) C.suppliers=[];
     if(V.plans===false) C.plans=[];
     if(V.docs===false) C.docs=[];
@@ -813,7 +816,7 @@
     function can(k){ return V[k]!==false; }
     var dl=can("shopping")?daysLeft(P.shoppingDeadline):null;
     var closed=P.suppliers.filter(function(s){return s.status==="ok";}).length;
-    var totalFee=P.payments.reduce(function(a,b){return a+(+b.amount||0);},0);
+    var CB=P.clientBudget||[];
     var next=P.stages.filter(function(s){return (+s.pct||0)<100;})[0];
     var h='';
     if(preview) h+='<div class="pvbanner" role="status">תצוגת לקוח — כך הלקוח רואה את הפרויקט. כבי את המתג למעלה כדי לחזור למסך המלא שלך.</div>';
@@ -823,7 +826,12 @@
     if(can("suppliers")&&P.suppliers.length) h+='<div class="card"><h3>אנשי מקצוע סגורים</h3><div class="kpi">'+closed+' <small>/ '+P.suppliers.length+'</small></div><div class="klabel">ספקים שכבר נסגרו</div></div>';
     h+='</div>';
     h+='<div class="sectitle">שלבי הפרויקט</div><div class="card">'+stagesHtml(P,false)+'</div>';
-    if(can("payments")&&totalFee>0) h+='<div class="sectitle">שלבי תשלום</div><div class="card">'+paymentsTable(P,false)+'</div>';
+    if(can("payments")&&CB.length){
+      var ta=0,tp=0, t='<table><tr><th>פריט</th><th>סכום כולל מע״מ</th><th>שולם</th><th>יתרה</th></tr>';
+      CB.forEach(function(l){ var a=+l.amount||0,p=+l.paid||0; ta+=a; tp+=p; t+='<tr><td>'+esc(l.nm)+'</td><td class="money">'+money(a)+'</td><td class="money">'+money(p)+'</td><td class="money">'+money(a-p)+'</td></tr>'; });
+      t+='<tr style="font-weight:800"><td>סה״כ</td><td class="money">'+money(ta)+'</td><td class="money">'+money(tp)+'</td><td class="money">'+money(ta-tp)+'</td></tr></table>';
+      h+='<div class="sectitle">תשלומי הפרויקט</div><div class="card">'+t+'</div>';
+    }
     if(can("suppliers")&&P.suppliers.length) h+='<div class="sectitle">ספקים · סגורים ולא סגורים</div><div class="card">'+suppliersTable(P,false)+'</div>';
     if(can("plans")&&P.plans.length) h+='<div class="sectitle">תוכניות עבודה</div><div class="card">'+plansTable(P,false)+'</div>';
     if(can("docs")&&P.docs.length) h+='<div class="sectitle">מסמכי הפרויקט</div><div class="card">'+docsHtml(P,false)+'</div>';
