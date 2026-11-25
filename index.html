@@ -214,6 +214,8 @@
   function daysLeft(d){ if(!d) return null; var t=new Date(d+"T00:00:00"); var now=new Date(); now.setHours(0,0,0,0); return Math.round((t-now)/86400000); }
   function overall(P){ var s=P.stages; if(!s.length) return 0; return Math.round(s.reduce(function(a,b){return a+(+b.pct||0);},0)/s.length); }
   function $(id){ return document.getElementById(id); }
+  // strips spaces and invisible direction marks that Hebrew keyboards / copy-paste can add to an address
+  function cleanEmail(v){ return String(v||"").replace(/[^\x21-\x7E]/g,"").toLowerCase(); }
   function byId(id){ return S.projects.filter(function(p){return p.id===id;})[0]; }
   function active(){ return byId(S.activeId)||S.projects[0]; }
 
@@ -282,7 +284,7 @@
       '<button class="btn primary" style="width:100%;margin-top:6px" id="loginBtn">כניסה</button>'+
       '<div class="authlinks"><a id="toSignup">כניסה ראשונה? יצירת סיסמה</a><a id="toForgot">שכחתי סיסמה</a></div>');
     async function go(){
-      var em=$("em").value.trim(), pw=$("pw").value;
+      var em=cleanEmail($("em").value), pw=$("pw").value;
       if(!em||!pw){ $("authMsg").textContent="יש למלא אימייל וסיסמה"; return; }
       $("loginBtn").disabled=true;
       var r=await sb.auth.signInWithPassword({email:em,password:pw});
@@ -305,7 +307,7 @@
       '<div class="authlinks"><a id="toLogin">חזרה לכניסה</a></div>');
     $("toLogin").onclick=function(){ renderLogin(); };
     $("suBtn").onclick=async function(){
-      var em=$("em").value.trim(), pw=$("pw").value;
+      var em=cleanEmail($("em").value), pw=$("pw").value;
       if(!em||pw.length<6){ $("authMsg").textContent="אימייל תקין וסיסמה של 6 תווים לפחות"; return; }
       $("suBtn").disabled=true;
       var r=await sb.auth.signUp({email:em,password:pw,options:{emailRedirectTo:location.origin+location.pathname}});
@@ -322,7 +324,7 @@
       '<div class="authlinks"><a id="toLogin">חזרה לכניסה</a></div>');
     $("toLogin").onclick=function(){ renderLogin(); };
     $("fgBtn").onclick=async function(){
-      var em=$("em").value.trim(); if(!em){ $("authMsg").textContent="יש להזין אימייל"; return; }
+      var em=cleanEmail($("em").value); if(!em){ $("authMsg").textContent="יש להזין אימייל"; return; }
       await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});
       renderLogin("אם האימייל רשום, נשלח אליו קישור לאיפוס סיסמה.", true);
     };
